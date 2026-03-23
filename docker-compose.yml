@@ -1,0 +1,256 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: asset_db
+    environment:
+      POSTGRES_DB: asset_management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - asset_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d asset_management']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: asset_storage
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - asset_network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: asset_queue
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - asset_network
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: asset_cache
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - asset_network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth:
+    build: ./auth
+    container_name: auth_service
+    ports:
+      - '3001:3001'
+    env_file:
+      - ./auth/.env.dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - asset_network
+    volumes:
+      - ./auth/src:/app/src
+      - ./auth/package.json:/app/package.json
+      - ./auth/.env.dev:/app/.env.dev
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3001/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  asset:
+    build: ./asset
+    container_name: asset_service
+    ports:
+      - '3002:3002'
+    env_file:
+      - ./asset/.env.dev
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - asset_network
+    volumes:
+      - ./asset/src:/app/src
+      - ./asset/package.json:/app/package.json
+      - ./asset/.env.dev:/app/.env.dev
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3002/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  metadata:
+    build: ./metadata
+    container_name: metadata_service
+    ports:
+      - '3003:3003'
+    env_file:
+      - ./metadata/.env.dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - asset_network
+    volumes:
+      - ./metadata/src:/app/src
+      - ./metadata/package.json:/app/package.json
+      - ./metadata/.env.dev:/app/.env.dev
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3003/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  usage:
+    build: ./usage
+    container_name: usage_service
+    ports:
+      - '3004:3004'
+    env_file:
+      - ./usage/.env.dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - asset_network
+    volumes:
+      - ./usage/src:/app/src
+      - ./usage/package.json:/app/package.json
+      - ./usage/.env.dev:/app/.env.dev
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3004/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  analytics:
+    build: ./analytics
+    container_name: analytics_service
+    ports:
+      - '3005:3005'
+    env_file:
+      - ./analytics/.env.dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - asset_network
+    volumes:
+      - ./analytics/src:/app/src
+      - ./analytics/package.json:/app/package.json
+      - ./analytics/.env.dev:/app/.env.dev
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3005/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: worker_service
+    env_file:
+      - ./worker/.env.dev
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - asset_network
+    volumes:
+      - ./worker/src:/app/src
+      - ./worker/package.json:/app/package.json
+      - ./worker/.env.dev:/app/.env.dev
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://rabbitmq:15672']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  gateway:
+    build: ./gateway
+    container_name: api_gateway
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./gateway/.env.dev
+    depends_on:
+      - auth
+      - asset
+      - metadata
+      - usage
+      - analytics
+    networks:
+      - asset_network
+    volumes:
+      - ./gateway/src:/app/src
+      - ./gateway/package.json:/app/package.json
+      - ./gateway/.env.dev:/app/.env.dev
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres_data:
+  minio_data:
+  rabbitmq_data:
+  redis_data:
+
+networks:
+  asset_network:
