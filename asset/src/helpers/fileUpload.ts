@@ -67,7 +67,7 @@ export const processSingleFileUpload = async (
       await tagService.addTagsToAsset(asset.id, userId, tags);
     } catch (error) {
       logger.error('Error adding tags:', error);
-      // Fail silently - Because throwing errors here will fail the upload
+      // Fail silently - Because throwing errors here will fail the file processing
     }
   }
 

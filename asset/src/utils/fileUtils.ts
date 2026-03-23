@@ -28,3 +28,15 @@ export const getFileType = (mimeType: string): string => {
 
   return 'other';
 };
+
+export const parseTags = (tags: any): string[] => {
+  if (!tags) return [];
+  if (Array.isArray(tags)) return tags;
+  if (typeof tags === 'string') {
+    return tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter((tag) => tag);
+  }
+  return [];
+};

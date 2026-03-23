@@ -31,12 +31,12 @@ export const tagService = {
   },
 
   // This function handles adding multiple tags to an asset,
-  async addTagsToAsset(assetId: string, userId: string, tags: string[]) {
-    if (!tags || tags.length === 0) return;
+  async addTagsToAsset(assetId: string, userId: string, tags: string | string[]) {
+    const tagArray = Array.isArray(tags) ? tags : [tags];
 
-    for (const tagName of tags) {
-      if (!tagName || typeof tagName !== 'string') continue;
+    if (tagArray.length === 0) return;
 
+    for (const tagName of tagArray) {
       const trimmedTag = tagName.toLowerCase().trim();
       if (trimmedTag.length === 0) continue;
 

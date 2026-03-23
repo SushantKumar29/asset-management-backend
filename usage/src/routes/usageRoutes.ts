@@ -15,6 +15,7 @@ router.use(authenticate);
 router.get('/:assetId', getAssetUsage);
 router.get('/activity/recent', getRecentActivity);
 router.get('/summary/overview', getUsageSummary);
+
 router.post('/:assetId', trackUsage);
 
 export default router;

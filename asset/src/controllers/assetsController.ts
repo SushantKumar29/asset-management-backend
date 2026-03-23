@@ -5,6 +5,7 @@ import { assetService } from '../services/assetService';
 import { processSingleFileUpload } from '../helpers/fileUpload';
 import { tagService } from '../services/tagService';
 import { rabbitMqChannel } from '../config/rabbitmq';
+import { parseTags } from '../utils/fileUtils';
 
 export const uploadAsset = async (req: AuthRequest, res: Response, next: Function) => {
   try {
@@ -16,10 +17,14 @@ export const uploadAsset = async (req: AuthRequest, res: Response, next: Functio
     const { description, tags } = req.body;
     const userId = req.user?.id;
 
-    const result = await processSingleFileUpload(file, userId, description, tags);
+    const normalizedTags = parseTags(tags);
+    const result = await processSingleFileUpload(file, userId, description, normalizedTags);
 
     if (result.duplicate) {
-      throw new AppError(`Duplicate file detected. Already exists as: ${result.existingName}`, 409);
+      res.status(409).json({
+        success: false,
+        message: `Duplicate file detected. Already exists as: ${result.existingName}`,
+      });
     }
 
     res.status(201).json({

@@ -35,6 +35,8 @@
     "format:check": "prettier --check \"**/*.{ts,js,json,md,yml,yaml}\""
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.0",

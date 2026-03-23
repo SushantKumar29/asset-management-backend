@@ -344,14 +344,91 @@ router.use('/assets', authenticate, (req, res, next) => {
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *        - name: assetId
- *          in: path
- *          type: string
+ *       - name: assetId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Asset ID
  *     responses:
  *       200:
  *         description: Returns metadata of a specific asset
  *       401:
  *         description: Not authenticated
+ *       404:
+ *         description: Asset not found
+ */
+
+/**
+ * @swagger
+ * /metadata/{assetId}:
+ *   post:
+ *     summary: Set metadata for an asset
+ *     tags: [Metadata]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: assetId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Asset ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               key:
+ *                 type: string
+ *                 default: processing_status
+ *               value:
+ *                 type: string
+ *                 default: completed
+ *               data:
+ *                 type: object
+ *               type:
+ *                 type: string
+ *                 default: text
+ *     responses:
+ *       200:
+ *         description: Metadata saved successfully
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Asset not found
+ */
+
+/**
+ * @swagger
+ * /metadata/{assetId}/{key}:
+ *   delete:
+ *     summary: Delete specific metadata key from an asset
+ *     tags: [Metadata]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: assetId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Asset ID
+ *       - name: key
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Metadata key to delete
+ *     responses:
+ *       200:
+ *         description: Metadata deleted successfully
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Asset not found
  */
 
 // Metadata routes
@@ -365,6 +442,115 @@ router.use(
   })
 );
 
+/**
+ * @swagger
+ * /usage/{assetId}:
+ *   get:
+ *     summary: Get usage statistics for a specific asset
+ *     tags: [Usage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: assetId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Asset ID
+ *       - name: days
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 30
+ *         description: Number of days to look back
+ *     responses:
+ *       200:
+ *         description: Returns usage statistics for the asset
+ *       401:
+ *         description: Not authenticated
+ */
+
+/**
+ * @swagger
+ * /usage/{assetId}:
+ *   post:
+ *     summary: Track usage of an asset
+ *     tags: [Usage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: assetId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Asset ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               action:
+ *                 type: string
+ *                 default: view
+ *               channel:
+ *                 type: string
+ *                 default: web
+ *               metadata:
+ *                 type: object
+ *     responses:
+ *       201:
+ *         description: Usage tracked successfully
+ *       401:
+ *         description: Not authenticated
+ */
+
+/**
+ * @swagger
+ * /usage/activity/recent:
+ *   get:
+ *     summary: Get recent activity for the authenticated user
+ *     tags: [Usage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Number of records to return
+ *     responses:
+ *       200:
+ *         description: Returns recent activity
+ *       401:
+ *         description: Not authenticated
+ */
+
+/**
+ * @swagger
+ * /usage/summary/overview:
+ *   get:
+ *     summary: Get usage summary for the authenticated user
+ *     tags: [Usage]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: days
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 30
+ *         description: Number of days to look back
+ *     responses:
+ *       200:
+ *         description: Returns usage summary
+ *       401:
+ *         description: Not authenticated
+ */
+
 // Usage routes
 router.use(
   '/usage',
@@ -375,6 +561,64 @@ router.use(
     },
   })
 );
+
+/**
+ * @swagger
+ * /analytics/summary:
+ *   get:
+ *     summary: Get asset summary for the authenticated user
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns asset summary (total assets, storage used, etc.)
+ *       401:
+ *         description: Not authenticated
+ */
+
+/**
+ * @swagger
+ * /analytics/type:
+ *   get:
+ *     summary: Get assets grouped by type
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns assets count grouped by type (image, video, document, etc.)
+ *       401:
+ *         description: Not authenticated
+ */
+
+/**
+ * @swagger
+ * /analytics/popular:
+ *   get:
+ *     summary: Get most popular assets
+ *     tags: [Analytics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of assets to return
+ *       - name: days
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 30
+ *         description: Number of days to look back
+ *     responses:
+ *       200:
+ *         description: Returns most viewed/downloaded assets
+ *       401:
+ *         description: Not authenticated
+ */
 
 // Analytics routes
 router.use(
