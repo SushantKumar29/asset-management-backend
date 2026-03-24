@@ -1,11 +1,11 @@
 import { Response } from 'express';
 import { AppError } from '../middleware/errorHandler';
-import { AuthRequest } from '../middleware/auth';
 import { assetService } from '../services/assetService';
 import { processSingleFileUpload } from '../helpers/fileUpload';
 import { tagService } from '../services/tagService';
 import { rabbitMqChannel } from '../config/rabbitmq';
 import { parseTags } from '../utils/fileUtils';
+import { AuthRequest } from '../types/auth';
 
 export const uploadAsset = async (req: AuthRequest, res: Response, next: Function) => {
   try {
@@ -37,19 +37,21 @@ export const uploadAsset = async (req: AuthRequest, res: Response, next: Functio
   }
 };
 
-export const uploadMultipleAssets = async (req: AuthRequest, res: Response, next: Function) => {
+export const uploadAssets = async (req: AuthRequest, res: Response, next: Function) => {
   try {
     const files = req.files as Express.Multer.File[];
     if (!files || files.length === 0) {
       throw new AppError('No files uploaded', 400);
     }
 
+    const { description, tags } = req.body;
     const userId = req.user?.id;
     const uploadedAssets = [];
     const duplicates = [];
 
     for (const file of files) {
-      const result = await processSingleFileUpload(file, userId);
+      const normalizedTags = parseTags(tags);
+      const result = await processSingleFileUpload(file, userId, description, normalizedTags);
 
       if (result.duplicate) {
         duplicates.push({

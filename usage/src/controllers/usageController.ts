@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth';
 import { usageService } from '../services/usageService';
+import { AuthRequest } from '../types/auth';
 
 export const trackUsage = async (req: AuthRequest, res: Response, next: Function) => {
   try {

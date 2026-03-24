@@ -15,7 +15,7 @@ export const metadataService = {
     assetId: string,
     key: string,
     value: string,
-    data: any,
+    data: unknown,
     type: string,
     userId: string
   ) {

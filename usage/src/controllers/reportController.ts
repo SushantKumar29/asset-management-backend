@@ -1,8 +1,8 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth';
 import { reportService } from '../services/reportService';
 import { generateReport } from '../helpers/reportGenerate';
 import { AppError } from '../middleware/errorHandler';
+import { AuthRequest } from '../types/auth';
 
 // This endpoint is used to generate a report
 export const createReport = async (req: AuthRequest, res: Response, next: Function) => {

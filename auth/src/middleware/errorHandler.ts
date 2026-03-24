@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import logger from '../utils/logger';
 
 /*
@@ -25,11 +25,16 @@ export class AppError extends Error {
   constructor(message: string, statusCode: number = 500) {
     super(message);
     this.statusCode = statusCode;
-    this.name = 'UsageError';
+    this.name = 'AuthError';
   }
 }
 
-export const errorHandler = (err: Error | AppError, req: Request, res: Response) => {
+export const errorHandler = (
+  err: Error | AppError,
+  req: Request,
+  res: Response,
+  _next?: NextFunction
+) => {
   // Logs the error in the server console with stack trace for only development
   logger.error('Error:', {
     message: err.message,

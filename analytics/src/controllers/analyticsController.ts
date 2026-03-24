@@ -1,6 +1,6 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth';
 import { analyticsService } from '../services/analyticsService';
+import { AuthRequest } from '../types/auth';
 
 export const getAssetSummary = async (req: AuthRequest, res: Response, next: Function) => {
   try {

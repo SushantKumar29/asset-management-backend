@@ -185,46 +185,6 @@ router.use(
  * @swagger
  * /assets/upload:
  *   post:
- *     summary: Upload an Asset
- *     tags: [Assets]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required:
- *               - file
- *             properties:
- *               description:
- *                 type: string
- *                 description: Asset description (optional)
- *               tags:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Array of tags (optional)
- *               file:
- *                 type: string
- *                 format: binary
- *                 description: The asset file to upload (required)
- *     responses:
- *       201:
- *         description: Asset uploaded successfully
- *       400:
- *         description: Bad request - file is required
- *       401:
- *         description: Unauthorized
- *       409:
- *         description: File already exists
- */
-
-/**
- * @swagger
- * /assets/upload-multiple:
- *   post:
  *     summary: Upload multiple Assets
  *     tags: [Assets]
  *     security:

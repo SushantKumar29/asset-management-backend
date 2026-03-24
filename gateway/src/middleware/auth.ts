@@ -1,10 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { redisClient } from '../config/redis';
-
-export interface AuthRequest extends Request {
-  user?: JwtPayload;
-}
+import { AuthRequest } from '../types/auth';
 
 export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {

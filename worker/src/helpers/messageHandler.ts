@@ -1,5 +1,4 @@
-// worker/helpers/messageHandler.ts
-
+import { Channel, Message } from 'amqplib';
 import { processAsset, generateReport, checkDuplicates, deleteAssetFiles } from './assetHandler';
 import logger from '../utils/logger';
 
@@ -12,7 +11,7 @@ const MAX_RETRIES = 5;
   The objective of using queue is to create an isolated, faster, and asyncronous environment for the background processes
 */
 
-export const handleAssetProcessing = async (msg: any, channel: any) => {
+export const handleAssetProcessing = async (msg: Message, channel: Channel) => {
   const data = JSON.parse(msg.content.toString());
   logger.info('Job received:', data.action);
 

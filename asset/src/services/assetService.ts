@@ -25,7 +25,7 @@ export const assetService = {
     path: string;
     checksum: string;
     userId: string;
-    metadata: any;
+    metadata: unknown;
   }) {
     const result = await db.query(
       `INSERT INTO assets (name, description, file_name, file_size, mime_type, path, checksum, owner_id, status, metadata)

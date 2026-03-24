@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import { uploadMultiple, uploadSingle } from '../middleware/upload';
+import { uploadMultiple } from '../middleware/upload';
 import {
-  uploadAsset,
-  uploadMultipleAssets,
+  uploadAssets,
   getAssets,
   getAsset,
   deleteAsset,
@@ -16,8 +15,7 @@ router.use(authenticate);
 
 router.get('/', getAssets);
 router.get('/:id', getAsset);
-router.post('/upload', uploadSingle, uploadAsset);
-router.post('/upload-multiple', uploadMultiple, uploadMultipleAssets);
+router.post('/upload', uploadMultiple, uploadAssets);
 router.delete('/:id', deleteAsset);
 router.get('/:id/tags', getAssetTags);
 

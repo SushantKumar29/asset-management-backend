@@ -5,7 +5,7 @@ import logger from '../utils/logger';
 export const generateReport = async (
   userId: string,
   reportType: string,
-  dateRange?: any,
+  dateRange?: unknown,
   action?: string
 ) => {
   try {

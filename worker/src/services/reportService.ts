@@ -3,7 +3,7 @@ import { db } from '../config/database';
 export const reportService = {
   // This function is used to get usage statistics for report
   async getUsageStats(startDate: Date, trackingAction?: string) {
-    const params: any[] = [startDate];
+    const params: (Date | string)[] = [startDate];
     let actionFilter = '';
 
     if (trackingAction) {

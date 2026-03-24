@@ -29,7 +29,7 @@ export const getFileType = (mimeType: string): string => {
   return 'other';
 };
 
-export const parseTags = (tags: any): string[] => {
+export const parseTags = (tags: string | string[]): string[] => {
   if (!tags) return [];
   if (Array.isArray(tags)) return tags;
   if (typeof tags === 'string') {

@@ -17,6 +17,12 @@ import { processAudio } from './filetypes/audioHandler';
 import { ASSET_STATUS } from '../constants/assetStatus';
 import { METADATA_KEYS, METADATA_STATUS } from '../constants/metadataStatus';
 import { minioClient } from '../config/minio';
+import {
+  AssetProcessingParams,
+  DeleteAssetFilesParams,
+  DuplicateCheckParams,
+  ReportGenerationParams,
+} from '../types/assetTypes';
 
 const fileHandlers: Record<string, Function> = {
   image: processImage,
@@ -28,13 +34,7 @@ const fileHandlers: Record<string, Function> = {
 };
 
 // This function is used for processing assets
-export const processAsset = async (data: {
-  assetId: string;
-  filePath: string;
-  mimeType: string;
-  userId: string;
-  checksum: string;
-}) => {
+export const processAsset = async (data: AssetProcessingParams) => {
   logger.info('Starting processing for asset:', data.assetId);
 
   const assetId = data.assetId;
@@ -112,11 +112,7 @@ export const processAsset = async (data: {
   }
 };
 
-export const deleteAssetFiles = async (data: {
-  assetId: string;
-  fileName: string;
-  mimeType?: string;
-}) => {
+export const deleteAssetFiles = async (data: DeleteAssetFilesParams) => {
   const { assetId, fileName, mimeType } = data;
   const bucket = process.env.MINIO_BUCKET!;
 
@@ -141,11 +137,7 @@ export const deleteAssetFiles = async (data: {
 };
 
 // This function is used for generating reports for usage
-export const generateReport = async (data: {
-  userId: string;
-  dateRange: { start: Date; end: Date };
-  trackingAction?: string; // Optional action filter for usage reports ('view', 'download', etc.)
-}) => {
+export const generateReport = async (data: ReportGenerationParams) => {
   try {
     const { userId, dateRange, trackingAction } = data;
 
@@ -183,12 +175,7 @@ export const generateReport = async (data: {
 };
 
 // This function is used for checking duplicates for Bulk uploads or synching assets
-export const checkDuplicates = async (data: {
-  assetId: string;
-  checksum: string;
-  userId: string;
-  fileName?: string;
-}) => {
+export const checkDuplicates = async (data: DuplicateCheckParams) => {
   try {
     const { assetId, checksum, userId, fileName } = data;
 

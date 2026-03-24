@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { AppError } from '../middleware/errorHandler';
 import { validateEmail, validatePassword } from '../utils/validation';
-import { AuthRequest } from '../middleware/auth';
 import { userService } from '../services/userService';
+import { AuthRequest } from '../types/auth';
 
 export const register = async (req: Request, res: Response, next: Function) => {
   try {

@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import { AppError } from '../middleware/errorHandler';
-import { AuthRequest } from '../middleware/auth';
 import { cache } from '../utils/cache';
 import { metadataService } from '../services/metadataService';
+import { AuthRequest } from '../types/auth';
 
 export const setMetadata = async (req: AuthRequest, res: Response, next: Function) => {
   try {

@@ -14,7 +14,7 @@ export const usageService = {
     channel?: string;
     ipAddress?: string;
     userAgent?: string;
-    metadata?: any;
+    metadata?: unknown;
   }) {
     const result = await db.query(
       `INSERT INTO usage_logs (asset_id, user_id, action, channel, ip_address, user_agent, metadata)
