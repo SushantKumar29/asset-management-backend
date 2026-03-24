@@ -9,7 +9,9 @@ import bcrypt from 'bcrypt';
 export const userService = {
   // This function is used to find a user by email
   async findByEmail(email: string) {
-    const result = await db.query('SELECT id FROM users WHERE email = $1', [email]);
+    const result = await db.query('SELECT id, email, name, role FROM users WHERE email = $1', [
+      email,
+    ]);
     return result.rows[0];
   },
 

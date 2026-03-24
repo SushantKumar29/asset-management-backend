@@ -36,12 +36,14 @@ export const errorHandler = (
   _next?: NextFunction
 ) => {
   // Logs the error in the server console with stack trace for only development
-  logger.error('Error:', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    path: req.path,
-    method: req.method,
-  });
+  if (process.env.NODE_ENV !== 'test') {
+    logger.error('Error:', {
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+      path: req.path,
+      method: req.method,
+    });
+  }
 
   // If it is an instance of AppError, then just return the message with status code to the client
   if (err instanceof AppError) {

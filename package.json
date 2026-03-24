@@ -32,7 +32,13 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,js,json,md,yml,yaml}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,json,md,yml,yaml}\""
+    "format:check": "prettier --check \"**/*.{ts,js,json,md,yml,yaml}\"",
+    "test": "npm run test:auth && npm run test:asset && npm run test:metadata && npm run test:usage && npm run test:analytics",
+    "test:auth": "cd auth && npm run test:docker",
+    "test:asset": "cd asset && npm run test:docker",
+    "test:metadata": "cd metadata && npm run test:docker",
+    "test:usage": "cd usage && npm run test:docker",
+    "test:analytics": "cd analytics && npm run test:docker"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",

@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import assetRoutes from './routes/assetRoutes';
-import { authenticate } from './middleware/auth';
 import { errorHandler } from './middleware/errorHandler';
 import { setupDatabase } from './config/database';
 import { setupRabbitMQ } from './config/rabbitmq';
@@ -19,7 +18,7 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/assets', authenticate, assetRoutes);
+app.use('/api/assets', assetRoutes);
 
 // This is used to checks the service health and used in the docker compose
 app.get('/health', (req, res) => {

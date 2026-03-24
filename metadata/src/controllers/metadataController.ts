@@ -4,6 +4,12 @@ import { cache } from '../utils/cache';
 import { metadataService } from '../services/metadataService';
 import { AuthRequest } from '../types/auth';
 
+/* 
+  This function is used for both creating and updating metadata
+  Currently it is receiving the data from the request body and just updating it in the DB
+  But the real implementation will be sending the asset id to the worker and generating the metadata and then save it in the DB
+  This can be an advanced implementation and not implemented here
+*/
 export const setMetadata = async (req: AuthRequest, res: Response, next: Function) => {
   try {
     const { assetId } = req.params;
@@ -24,17 +30,7 @@ export const setMetadata = async (req: AuthRequest, res: Response, next: Functio
     res.json({
       success: true,
       message: 'Metadata saved',
-      data: {
-        id: metadata.id,
-        asset_id: metadata.asset_id,
-        key: metadata.key,
-        value: metadata.value,
-        data: metadata.data,
-        type: metadata.type,
-        created_by: metadata.created_by,
-        created_at: metadata.created_at,
-        updated_at: metadata.updated_at,
-      },
+      data: metadata,
     });
   } catch (error) {
     next(error);
