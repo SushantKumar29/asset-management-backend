@@ -1,5 +1,12 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
+#!/bin/sh
 
-npm run lint
-# npm run test
+# Get current branch name
+BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+# Define branches where tests should run
+if [ "$BRANCH_NAME" = "main" ] || [ "$BRANCH_NAME" = "development" ] || [ "$BRANCH_NAME" = "staging" ]; then
+  npm run lint
+  npm run test
+else
+  npm run lint
+fi
