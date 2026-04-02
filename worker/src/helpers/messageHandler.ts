@@ -1,6 +1,7 @@
 import { Channel, Message } from 'amqplib';
 import { processAsset, generateReport, checkDuplicates, deleteAssetFiles } from './assetHandler';
 import logger from '../utils/logger';
+import { jobService } from '../services/jobService';
 
 const MAX_RETRIES = 5;
 /*
@@ -13,29 +14,63 @@ const MAX_RETRIES = 5;
 
 export const handleAssetProcessing = async (msg: Message, channel: Channel) => {
   const data = JSON.parse(msg.content.toString());
+  let jobId: string | undefined = undefined;
+
   logger.info('Job received:', data.action);
 
   try {
     switch (data.action) {
       case 'process':
-        await processAsset(data);
+        jobId = await jobService.createJob('analysis', data.assetId, { mimeType: data.mimeType });
         break;
       case 'report':
-        await generateReport(data);
+        jobId = await jobService.createJob('report', undefined, { reportType: data.reportType });
         break;
       case 'duplicate':
-        await checkDuplicates(data);
+        jobId = await jobService.createJob('duplicate_check', data.assetId, {
+          checksum: data.checksum,
+        });
         break;
       case 'delete':
-        await deleteAssetFiles(data);
+        jobId = await jobService.createJob('delete', data.assetId);
+        break;
+    }
+
+    if (jobId) {
+      await jobService.startJob(jobId);
+      await jobService.addLog(jobId, 'start', `Started ${data.action} job`);
+    }
+
+    switch (data.action) {
+      case 'process':
+        await processAsset(data, jobId);
+        break;
+      case 'report':
+        await generateReport(data, jobId);
+        break;
+      case 'duplicate':
+        await checkDuplicates(data, jobId);
+        break;
+      case 'delete':
+        await deleteAssetFiles(data, jobId);
         break;
       default:
         logger.info('Unknown action:', data.action);
     }
 
+    if (jobId) {
+      await jobService.completeJob(jobId);
+      await jobService.addLog(jobId, 'complete', 'Job completed successfully');
+    }
+
     channel.ack(msg);
     logger.info('✅ Job completed:', data.action);
   } catch (error) {
+    if (jobId) {
+      await jobService.failJob(jobId, String(error));
+      await jobService.addLog(jobId, 'error', `Job failed: ${String(error)}`);
+    }
+
     const retryCount = (msg.properties.headers?.retryCount || 0) + 1;
 
     if (retryCount >= MAX_RETRIES) {

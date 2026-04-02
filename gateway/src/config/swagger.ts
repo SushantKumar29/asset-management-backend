@@ -16,7 +16,7 @@ const options = {
         description: 'Development server',
       },
     ],
-    // Here we are setting up the authorization schema for out API end points
+    // Set up the authorization schema for out API end points
     components: {
       securitySchemes: {
         bearerAuth: {

@@ -2,7 +2,6 @@ import { db } from '../config/database';
 import { ASSET_STATUS } from '../constants/assetStatus';
 
 export const assetService = {
-  // Update asset status and metadata after processing
   async updateAfterProcessing(
     assetId: string,
     status: string,
@@ -25,7 +24,6 @@ export const assetService = {
     );
   },
 
-  // Update asset status on failure
   async updateOnFailure(assetId: string, error: unknown) {
     await db.query(
       `UPDATE assets 
@@ -37,7 +35,6 @@ export const assetService = {
     );
   },
 
-  // Update duplicate info in asset metadata
   async updateDuplicateInfo(assetId: string, duplicateInfo: unknown) {
     await db.query(
       `UPDATE assets 
@@ -51,7 +48,6 @@ export const assetService = {
     );
   },
 
-  // Update processing status for duplicate check
   async updateDuplicateCheckStatus(assetId: string, status: unknown) {
     await db.query(
       `UPDATE assets 
@@ -65,7 +61,6 @@ export const assetService = {
     );
   },
 
-  // Find duplicates by checksum
   async findDuplicates(checksum: string, assetId: string, userId: string) {
     const result = await db.query(
       `SELECT id, name, file_name, created_at 

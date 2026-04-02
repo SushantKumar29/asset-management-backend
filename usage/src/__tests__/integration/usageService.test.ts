@@ -6,7 +6,6 @@ describe('UsageService Integration Tests', () => {
   let assetId: string;
   let assetCounter = 0;
 
-  // Helper function to create a test user
   const createTestUser = async () => {
     const result = await pool.query(
       `INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id`,
@@ -15,7 +14,6 @@ describe('UsageService Integration Tests', () => {
     return result.rows[0].id;
   };
 
-  // Helper function to create a test asset
   const createTestAsset = async (userId: string) => {
     assetCounter++;
     const result = await pool.query(
@@ -35,7 +33,6 @@ describe('UsageService Integration Tests', () => {
     return result.rows[0].id;
   };
 
-  // Helper function to create usage logs
   const createTestUsage = async (
     assetId: string,
     userId: string,
@@ -92,7 +89,7 @@ describe('UsageService Integration Tests', () => {
       await createTestUsage(assetId, userId, 'view');
       await createTestUsage(assetId, userId, 'download');
 
-      const activities = await usageService.getRecentActivity(userId, 10); // The second params is the number of days
+      const activities = await usageService.getRecentActivity(userId, 10);
       expect(activities.length).toBe(2);
     });
   });
@@ -103,7 +100,7 @@ describe('UsageService Integration Tests', () => {
       await createTestUsage(assetId, userId, 'view');
       await createTestUsage(assetId, userId, 'download');
 
-      const summary = await usageService.getUsageSummary(userId, 7); // The second params is the number of days
+      const summary = await usageService.getUsageSummary(userId, 7);
       expect(Number(summary.total_actions)).toBe(3);
       expect(Number(summary.unique_actions)).toBe(2);
     });

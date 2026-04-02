@@ -1,24 +1,38 @@
+import PDFDocument from 'pdfkit';
 import { Response } from 'express';
 import { reportService } from '../services/reportService';
 import { generateReport } from '../helpers/reportGenerate';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../types/auth';
 
-// This endpoint is used to generate a report
 export const createReport = async (req: AuthRequest, res: Response, next: Function) => {
   try {
-    const { dateRange, action } = req.body;
+    const { type, from, to } = req.body;
     const userId = req.user?.id;
 
-    const result = await generateReport(userId, dateRange, action);
+    const actionMap: Record<string, string | undefined> = {
+      usage: undefined,
+      performance: undefined,
+      compliance: 'view',
+      summary: undefined,
+    };
 
-    res.json(result);
+    const result = await generateReport(
+      userId,
+      type,
+      { start: new Date(from), end: new Date(to) },
+      actionMap[type]
+    );
+
+    res.json({
+      success: true,
+      data: result,
+    });
   } catch (error) {
     next(error);
   }
 };
 
-// This endpoint is used to get the user's reports
 export const getMyReports = async (req: AuthRequest, res: Response, next: Function) => {
   try {
     const userId = req.user?.id;
@@ -35,7 +49,6 @@ export const getMyReports = async (req: AuthRequest, res: Response, next: Functi
   }
 };
 
-// This endpoint is used to download a report
 export const downloadReport = async (req: AuthRequest, res: Response, next: Function) => {
   try {
     const { reportId } = req.params;
@@ -47,21 +60,23 @@ export const downloadReport = async (req: AuthRequest, res: Response, next: Func
       throw new AppError('Report not found', 404);
     }
 
-    // Set headers for file download
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${report.report_type}-report-${
-        report.created_at.toISOString().split('T')[0]
-      }.json"`
-    );
+    const doc = new PDFDocument();
+    const filename = `${report.report_type}-report-${report.created_at.toISOString().split('T')[0]}.pdf`;
 
-    res.json({
-      success: true,
-      report: report.data,
-      generatedAt: report.created_at,
-      reportType: report.report_type,
-    });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    doc.pipe(res);
+
+    doc.fontSize(20).text(`${report.report_type.toUpperCase()} REPORT`, { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`Generated: ${report.created_at.toLocaleString()}`);
+    doc.moveDown();
+    doc.text('Report Data:');
+    doc.moveDown();
+    doc.fontSize(10).text(JSON.stringify(report.data, null, 2));
+
+    doc.end();
   } catch (error) {
     next(error);
   }

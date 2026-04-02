@@ -13,9 +13,9 @@ dotenv.config();
 export const redisClient = new Redis({
   host: process.env.REDIS_HOST || 'redis',
   port: Number(process.env.REDIS_PORT || '6379'),
-  maxRetriesPerRequest: 3, // This option prevents the app from hanging trying to execute commands on a dead Redis connection
-  enableReadyCheck: true, // THis option waits for Redis to be fully ready before allowing commands
-  lazyConnect: true, // This option delays the Redis connection
+  maxRetriesPerRequest: 3, // Prevents the app from hanging trying to execute commands on a dead Redis connection
+  enableReadyCheck: true, // Waits for Redis to be fully ready before allowing commands
+  lazyConnect: true, // Delays the Redis connection
 });
 
 redisClient.on('connect', () => {

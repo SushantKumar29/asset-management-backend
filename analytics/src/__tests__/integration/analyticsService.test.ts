@@ -114,7 +114,7 @@ describe('AnalyticsService Integration Tests', () => {
       const popular = await analyticsService.getPopularAssets(userId, 10, 30);
 
       expect(popular[0].name).toBe('popular1.jpg');
-      expect(Number(popular[0].view_count)).toBe(2);
+      expect(Number(popular[0].views)).toBe(2);
     });
   });
 });

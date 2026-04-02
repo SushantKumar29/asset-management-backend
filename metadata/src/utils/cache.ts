@@ -2,7 +2,6 @@ import { redisClient } from '../config/redis';
 import logger from './logger';
 
 export const cache = {
-  // Get data from cache
   async get(key: string) {
     try {
       const data = await redisClient.get(key);
@@ -13,7 +12,6 @@ export const cache = {
     }
   },
 
-  // Set data in cache with expiration
   async set(key: string, data: unknown, ttlSeconds: number = 300) {
     try {
       await redisClient.setex(key, ttlSeconds, JSON.stringify(data));
@@ -23,7 +21,6 @@ export const cache = {
     }
   },
 
-  // Clear specific cache key
   async clear(key: string) {
     try {
       await redisClient.del(key);
@@ -33,7 +30,6 @@ export const cache = {
     }
   },
 
-  // Generate cache key for metadata
   key: {
     metadata: (userId: string, assetId: string) => `metadata:${userId}:${assetId}`,
     tags: (userId: string, assetId: string) => `tags:${userId}:${assetId}`,

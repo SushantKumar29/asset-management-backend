@@ -12,7 +12,7 @@ router.get('/json', (req: Request, res: Response) => {
 
 const swaggerOptions = {
   swaggerOptions: {
-    persistAuthorization: true, // THis option is used to persist the authorization header when the swagger page reloads
+    persistAuthorization: true, // Persist the authorization header when the swagger UI page reloads
   },
 };
 

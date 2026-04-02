@@ -1,7 +1,6 @@
 import { db } from '../config/database';
 
 export const metadataService = {
-  // This function is used to check if asset already exists and belongs to user
   async checkAssetOwnership(assetId: string, userId: string) {
     const result = await db.query('SELECT id FROM assets WHERE id = $1 AND owner_id = $2', [
       assetId,
@@ -10,7 +9,6 @@ export const metadataService = {
     return result.rows.length > 0;
   },
 
-  // This function is used to create the metadata and on conflicting the asset_id and key, it will update the metadata
   async upsert(
     assetId: string,
     key: string,
@@ -34,7 +32,6 @@ export const metadataService = {
     return result.rows[0];
   },
 
-  // This function is used to fetch all the metadata for an asset
   async findAll(assetId: string) {
     const result = await db.query(
       'SELECT id, asset_id, key, value, data, type, created_by, created_at, updated_at FROM metadata WHERE asset_id = $1::uuid ORDER BY key',
@@ -43,7 +40,6 @@ export const metadataService = {
     return result.rows;
   },
 
-  // This function is used to delete specific metadata by key
   async delete(assetId: string, key: string) {
     const result = await db.query(
       'DELETE FROM metadata WHERE asset_id = $1 AND key = $2 RETURNING id',

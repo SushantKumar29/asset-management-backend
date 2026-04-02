@@ -14,8 +14,9 @@ export interface DeleteAssetFilesParams {
 
 export interface ReportGenerationParams {
   userId: string;
+  reportType: string;
   dateRange: { start: Date; end: Date };
-  trackingAction?: string; // Optional action filter for usage reports ('view', 'download', etc.)
+  trackingAction?: string; // ('view', 'download', etc.)
 }
 
 export interface DuplicateCheckParams {

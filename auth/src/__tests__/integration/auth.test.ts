@@ -2,7 +2,6 @@ import request from 'supertest';
 import { app } from '../setup';
 
 describe('Auth API', () => {
-  // Here we are testing the register endpoint
   describe('POST /api/auth/register', () => {
     it('should register a new user', async () => {
       const response = await request(app).post('/api/auth/register').send({
@@ -18,7 +17,6 @@ describe('Auth API', () => {
       expect(response.body.data.token).toBeDefined();
     });
 
-    // If the required fields are missing, then we should return 400
     it('should return 400 if email missing', async () => {
       const response = await request(app).post('/api/auth/register').send({});
 
@@ -26,7 +24,6 @@ describe('Auth API', () => {
       expect(response.body.error).toBe('Missing required fields');
     });
 
-    // If the email is invalid format, then we should return 400
     it('should return 400 for invalid email', async () => {
       const response = await request(app).post('/api/auth/register').send({
         email: 'invalid',
@@ -38,7 +35,6 @@ describe('Auth API', () => {
       expect(response.body.error).toBe('Invalid email format');
     });
 
-    // If the password is less than 8 characters, then we should return 400
     it('should return 400 for invalid password', async () => {
       const response = await request(app).post('/api/auth/register').send({
         email: 'test@test.com',
@@ -51,10 +47,8 @@ describe('Auth API', () => {
     });
   });
 
-  // Here we are testing the login endpoint
   describe('POST /api/auth/login', () => {
     beforeEach(async () => {
-      // Create a test user
       await request(app).post('/api/auth/register').send({
         email: 'login@test.com',
         password: 'password123',
@@ -74,7 +68,6 @@ describe('Auth API', () => {
       expect(response.body.data.token).toBeDefined();
     });
 
-    // If the required fields are missing, then we should return 400
     it('should return 400 if email and password are missing', async () => {
       const response = await request(app).post('/api/auth/login').send({});
 

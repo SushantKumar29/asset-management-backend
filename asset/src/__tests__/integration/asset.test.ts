@@ -4,7 +4,6 @@ import { app, pool } from '../setup';
 describe('Asset Controller Integration Tests', () => {
   let userId: string;
 
-  // Helper function to create a test user
   const createTestUser = async (email: string = 'test@test.com', name: string = 'Asset User') => {
     const userResult = await pool.query(
       `INSERT INTO users (email, password, name) 
@@ -14,7 +13,6 @@ describe('Asset Controller Integration Tests', () => {
     return userResult.rows[0].id;
   };
 
-  // Helper function to create a test asset
   const createTestAsset = async (userId: string, assetData: object = {}) => {
     const defaultAsset = {
       name: 'test-asset.jpg',
@@ -45,7 +43,6 @@ describe('Asset Controller Integration Tests', () => {
     return { id: result.rows[0].id, ...asset };
   };
 
-  // Helper function to create multiple assets (each will have uniq checksum)
   let assetCounter = 0;
   const createTestAssets = async (userId: string, count: number, baseData: object = {}) => {
     const assets = [];
@@ -62,13 +59,11 @@ describe('Asset Controller Integration Tests', () => {
     return assets;
   };
 
-  // Helper function to create a tag
   const createTestTag = async (name: string) => {
     const result = await pool.query(`INSERT INTO tags (name) VALUES ($1) RETURNING id`, [name]);
     return { id: result.rows[0].id, name };
   };
 
-  // Helper function to associate tag with asset
   const addTagToAsset = async (assetId: string, tagId: string, userId: string) => {
     await pool.query(`INSERT INTO asset_tags (asset_id, tag_id, created_by) VALUES ($1, $2, $3)`, [
       assetId,
@@ -167,16 +162,18 @@ describe('Asset Controller Integration Tests', () => {
   });
 
   describe('POST /api/assets/upload', () => {
-    it('should upload a single file', async () => {
+    it('should upload files', async () => {
       const response = await request(app)
         .post('/api/assets/upload')
         .set('user-id', userId)
-        .attach('files', Buffer.from('test file content'), 'test.jpg')
+        .attach('files', Buffer.from('test file content'), 'test1.jpg')
+        .attach('files', Buffer.from('another file content'), 'test2.jpg')
         .field('description', 'Test upload')
-        .field('tags', 'test,upload');
+        .field('tags', 'test,upload'); // This should work with parseTags
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
+      expect(response.body.data.uploaded.length).toBe(2);
     });
   });
 });

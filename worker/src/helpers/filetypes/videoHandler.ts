@@ -5,20 +5,20 @@ import logger from '../../utils/logger';
 import { FfprobeData } from 'fluent-ffmpeg';
 
 /*
-  This function is used to process the video using fluent-ffmpeg
+  Process the video using fluent-ffmpeg
   fluent-ffmpeg - most popular third party library for media processing
 */
 
 export const processVideo = async (buffer: Buffer, assetId: string) => {
   logger.info('Processing video for asset:', assetId);
 
-  const tempFile = path.join('/tmp', `video-${assetId}.mp4`); // Here we are creating a temp file because ffmpeg needs a file path instead of a buffer
-  fs.writeFileSync(tempFile, buffer); // Here we are writing the buffer to the temp file
+  const tempFile = path.join('/tmp', `video-${assetId}.mp4`); // Create a temp file because ffmpeg needs a file path instead of a buffer
+  fs.writeFileSync(tempFile, buffer); // Write the buffer to the temp file
 
   try {
     /* 
-      Here we are extracting the video metadata
-      The reason we used promise here is that the ffprobe() is a callback based function and it can cause callback hell
+      Extract the video metadata
+      ffprobe() is a callback based function and it can cause callback hell
       So using promise makes sure the metadata is fetched before we process the response
     */
     const metadata = await new Promise<FfprobeData>((resolve, reject) => {
@@ -28,9 +28,9 @@ export const processVideo = async (buffer: Buffer, assetId: string) => {
       });
     });
 
-    // Here we are getting the video codec info (h264, h265, etc.)
+    // Get the video codec info (h264, h265, etc.)
     const videoStream = metadata.streams.find((s) => s.codec_type === 'video');
-    // Here we are getting the audio codec info (aac, mp3, etc.)
+    // Get the audio codec info (aac, mp3, etc.)
     const audioStream = metadata.streams.find((s) => s.codec_type === 'audio');
 
     const results = {
@@ -52,7 +52,7 @@ export const processVideo = async (buffer: Buffer, assetId: string) => {
   } catch (error) {
     logger.error('Video processing failed:', error);
 
-    // Here if error is there, still the response will have basic metadata
+    // Even if with error, still the response will have basic metadata
     return {
       metadata: {
         size: buffer.length,
@@ -61,6 +61,6 @@ export const processVideo = async (buffer: Buffer, assetId: string) => {
       },
     };
   } finally {
-    fs.unlinkSync(tempFile); // After processing the video, we are deleting the temp file
+    fs.unlinkSync(tempFile); // Delete the temp file
   }
 };

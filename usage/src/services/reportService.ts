@@ -1,7 +1,6 @@
 import { db } from '../config/database';
 
 export const reportService = {
-  // This function is used to get all reports for a user
   async getUserReports(userId: string, limit = 20) {
     const result = await db.query(
       `SELECT id, report_type, date_range, created_at 
@@ -14,7 +13,6 @@ export const reportService = {
     return result.rows;
   },
 
-  // This function is used to get a specific report
   async getReportById(reportId: string, userId: string) {
     const result = await db.query(
       `SELECT * FROM reports 
@@ -24,7 +22,6 @@ export const reportService = {
     return result.rows[0];
   },
 
-  // This function is used to delete old reports
   async deleteOldReports(days = 30) {
     await db.query(
       `DELETE FROM reports 

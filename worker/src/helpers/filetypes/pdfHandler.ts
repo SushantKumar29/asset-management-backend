@@ -4,7 +4,6 @@ import logger from '../../utils/logger';
 export const processPDF = async (buffer: Buffer, assetId: string) => {
   logger.info('Processing PDF for asset:', assetId);
 
-  // Here we are extracting PDF metadata
   const pdfData = await pdfParse(buffer);
   const results = {
     metadata: {

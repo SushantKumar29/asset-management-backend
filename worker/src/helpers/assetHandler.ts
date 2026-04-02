@@ -1,3 +1,4 @@
+// helpers/assetHandler.ts
 import logger from '../utils/logger';
 import { getFileBuffer } from '../utils/fileBuffer';
 import {
@@ -23,6 +24,7 @@ import {
   DuplicateCheckParams,
   ReportGenerationParams,
 } from '../types/assetTypes';
+import { jobService } from '../services/jobService';
 
 const fileHandlers: Record<string, Function> = {
   image: processImage,
@@ -33,8 +35,7 @@ const fileHandlers: Record<string, Function> = {
   text: processText,
 };
 
-// This function is used for processing assets
-export const processAsset = async (data: AssetProcessingParams) => {
+export const processAsset = async (data: AssetProcessingParams, jobId?: string) => {
   logger.info('Starting processing for asset:', data.assetId);
 
   const assetId = data.assetId;
@@ -42,14 +43,21 @@ export const processAsset = async (data: AssetProcessingParams) => {
   const mimeType = data.mimeType;
   const userId = data.userId;
 
+  if (jobId) {
+    await jobService.addLog(jobId, 'fetch', `Fetching file from storage: ${filePath}`);
+  }
+
   try {
-    const buffer = await getFileBuffer(filePath); // Here we are getting the file as buffer for further processing
+    const buffer = await getFileBuffer(filePath);
+
+    if (jobId) {
+      await jobService.addLog(jobId, 'process', `Processing ${mimeType} file`);
+    }
 
     let fileResult = {};
-    const fileType = getFileType(mimeType); // Here we are getting file type
+    const fileType = getFileType(mimeType);
 
     if (fileType === 'document') {
-      // Here we are handling various document types
       if (mimeType === 'application/pdf') {
         fileResult = await processPDF(buffer, assetId);
       } else if (mimeType.includes('word') || mimeType.includes('document')) {
@@ -60,128 +68,143 @@ export const processAsset = async (data: AssetProcessingParams) => {
         fileResult = await processUnknown();
       }
     } else if (fileHandlers[fileType]) {
-      // Here we are mapping for image, video, audio
       fileResult = await fileHandlers[fileType](buffer, assetId);
     } else {
       fileResult = await processUnknown();
     }
 
-    // Here we are creating the results for the assets table
     const processedResult = {
       processedAt: new Date().toISOString(),
       mimeType,
       fileSize: buffer.length,
     };
 
-    // Here we are updating assets table
+    if (jobId) {
+      await jobService.addLog(jobId, 'save', 'Saving processing results');
+    }
+
     await assetService.updateAfterProcessing(assetId, ASSET_STATUS.processed, processedResult, {
       metadata: true,
       thumbnails: !!(fileResult as { thumbnails: string[] }).thumbnails,
       completed: true,
     });
 
-    // Here we are updating metadata table
     await metadataService.upsert(
       assetId,
       METADATA_KEYS.processingStatus,
       METADATA_STATUS.completed,
-      { ...fileResult, ...processedResult }, // Here the extracted metadata and the processed result are merged and stored in the metadata table
+      { ...fileResult, ...processedResult },
       'jsonb',
       userId
     );
 
     logger.info('✅ Asset processed successfully:', assetId);
+    if (jobId) {
+      await jobService.addLog(jobId, 'complete', 'Asset processed successfully');
+    }
     return { success: true, assetId };
   } catch (error) {
     logger.error('❌ Processing failed:', error);
-
-    // If the processing fails, update the assets table with failure status including the error
-    await assetService.updateOnFailure(assetId, error);
-
-    // If the processing fails, update the metadata table with failure status including the error
-    await metadataService.upsert(
-      assetId,
-      METADATA_KEYS.processingStatus,
-      METADATA_STATUS.failed,
-      { error: String(error), failedAt: new Date().toISOString() },
-      'jsonb',
-      userId
-    );
-
     throw error;
   }
 };
 
-export const deleteAssetFiles = async (data: DeleteAssetFilesParams) => {
+export const deleteAssetFiles = async (data: DeleteAssetFilesParams, jobId?: string) => {
   const { assetId, fileName, mimeType } = data;
   const bucket = process.env.MINIO_BUCKET!;
 
+  if (jobId) {
+    await jobService.addLog(jobId, 'delete', `Deleting file: ${fileName}`);
+  }
+
   try {
-    // Here we are deleting the original file from MinIO
     await minioClient.removeObject(bucket, fileName);
-    // If the file is an image type, then we need to delete it's thumbnails also
     logger.info(`Deleted original file: ${fileName}`);
+
     if (mimeType?.startsWith('image/')) {
       try {
         await deleteImageThumbnails(assetId);
+        if (jobId) {
+          await jobService.addLog(jobId, 'delete', 'Deleted thumbnails');
+        }
       } catch (error) {
         logger.error(`Failed to delete thumbnails for asset ${assetId}:`, error);
       }
     }
   } catch (error) {
     logger.error(`Failed to delete original file ${fileName}:`, error);
+    throw error;
   }
 
   logger.info(`✅ Successfully deleted all files for asset ${assetId}`);
   return { success: true, assetId };
 };
 
-// This function is used for generating reports for usage
-export const generateReport = async (data: ReportGenerationParams) => {
+export const generateReport = async (data: ReportGenerationParams, jobId?: string) => {
   try {
-    const { userId, dateRange, trackingAction } = data;
+    const { userId, reportType, dateRange, trackingAction } = data;
 
-    let reportData = {};
+    const { start, end } = dateRange;
 
-    const startDate = dateRange?.start || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    if (jobId) {
+      await jobService.addLog(
+        jobId,
+        'fetch',
+        `Generating ${reportType} report from ${start} to ${end}`
+      );
+    }
 
-    // Pass the action parameter if provided
-    const rows = await reportService.getUsageStats(startDate, trackingAction);
+    let stats;
+    if (reportType === 'performance') {
+      stats = await reportService.getPerformanceStats(start, end);
+    } else if (reportType === 'compliance') {
+      stats = await reportService.getComplianceStats(start, end);
+    } else {
+      stats = await reportService.getUsageStats(start, end, trackingAction);
+    }
 
-    reportData = {
-      usage: rows.data, // rows.data contains the actual stats
-      summary: {
-        action: rows.trackingAction,
-        period: {
-          start: startDate,
-          end: new Date(),
-        },
+    const reportData = {
+      reportType,
+      generatedAt: new Date().toISOString(),
+      period: {
+        start,
+        end,
+      },
+      summary: stats.summary,
+      details: stats.data,
+      metrics: {
+        totalActions: stats.summary?.total_actions || 0,
+        uniqueAssets: stats.summary?.total_assets || 0,
+        uniqueUsers: stats.summary?.total_users || 0,
+        views: stats.summary?.total_views || 0,
+        downloads: stats.summary?.total_downloads || 0,
       },
     };
 
+    if (jobId) {
+      await jobService.addLog(jobId, 'save', 'Saving report to database');
+    }
+
+    const reportId = await reportService.saveReport(userId, reportData, reportType, dateRange);
+
     logger.info('Report generated successfully');
-
-    // Here we are saving the report in the reports table which can be further downloaded
-    const reportId = await reportService.saveReport(userId, reportData, dateRange);
-
-    return {
-      success: true,
-      reportId,
-    };
+    return { success: true, reportId, reportData };
   } catch (error) {
     logger.error('Report generation failed:', error);
     throw error;
   }
 };
 
-// This function is used for checking duplicates for Bulk uploads or synching assets
-export const checkDuplicates = async (data: DuplicateCheckParams) => {
+export const checkDuplicates = async (data: DuplicateCheckParams, jobId?: string) => {
   try {
     const { assetId, checksum, userId, fileName } = data;
 
     logger.info(`Checking duplicates for asset ${assetId} (${fileName || 'unknown file'})`);
 
-    // Find other assets with same checksum
+    if (jobId) {
+      await jobService.addLog(jobId, 'check', `Checking duplicates for ${fileName}`);
+    }
+
     const duplicates = await assetService.findDuplicates(checksum, assetId, userId);
 
     const duplicateInfo = {
@@ -194,15 +217,17 @@ export const checkDuplicates = async (data: DuplicateCheckParams) => {
       })),
     };
 
-    // Update asset metadata with duplicate info
     await assetService.updateDuplicateInfo(assetId, duplicateInfo);
 
-    // Update processing status
     await assetService.updateDuplicateCheckStatus(assetId, {
       completed: true,
       found: duplicates.length,
       timestamp: new Date().toISOString(),
     });
+
+    if (jobId) {
+      await jobService.addLog(jobId, 'complete', `Found ${duplicates.length} duplicate(s)`);
+    }
 
     if (duplicates.length > 0) {
       logger.info(`Found ${duplicates.length} duplicate(s) for asset ${assetId}`);
@@ -212,13 +237,6 @@ export const checkDuplicates = async (data: DuplicateCheckParams) => {
     return duplicateInfo;
   } catch (error) {
     logger.error('Duplicate check failed:', error);
-
-    await assetService.updateDuplicateCheckStatus(data.assetId, {
-      completed: false,
-      error: String(error),
-      timestamp: new Date().toISOString(),
-    });
-
     throw error;
   }
 };

@@ -65,12 +65,12 @@ export const uploadAssets = async (req: AuthRequest, res: Response, next: Functi
 
     res.status(201).json({
       success: true,
-      message: `${uploadedAssets.length} assets uploaded${
-        duplicates.length > 0 ? `, ${duplicates.length} duplicates skipped` : ''
-      }`,
       data: {
         uploaded: uploadedAssets,
         duplicates: duplicates,
+        message: `${uploadedAssets.length} assets uploaded${
+          duplicates.length > 0 ? `, ${duplicates.length} duplicates skipped` : ''
+        }`,
       },
     });
   } catch (error) {
@@ -80,20 +80,24 @@ export const uploadAssets = async (req: AuthRequest, res: Response, next: Functi
 
 export const getAssets = async (req: AuthRequest, res: Response, next: Function) => {
   try {
-    const { status, limit = 50, offset = 0 } = req.query;
+    const { status, type, search, limit = 50, offset = 0 } = req.query;
     const userId = req.user?.id;
 
-    const [assets, total] = await Promise.all([
-      assetService.findAll(userId, status as string, Number(limit), Number(offset)),
-      assetService.count(userId),
-    ]);
+    const assets = await assetService.findAll(
+      userId,
+      status as string,
+      type as string,
+      search as string,
+      Number(limit),
+      Number(offset)
+    );
 
     res.json({
       success: true,
       data: {
         assets,
         pagination: {
-          total,
+          total: assets.length,
           limit: Number(limit),
           offset: Number(offset),
         },
@@ -129,17 +133,14 @@ export const deleteAsset = async (req: AuthRequest, res: Response, next: Functio
     const { id } = req.params;
     const userId = req.user?.id;
 
-    // Get asset info
     const asset = await assetService.getFileName(id, userId);
 
     if (!asset) {
       throw new AppError('Asset not found', 404);
     }
 
-    // Delete from database
     await assetService.delete(id);
 
-    // Send delete message to processing queue (THis will delete the files in the background)
     rabbitMqChannel.sendToQueue(
       'asset_processing',
       Buffer.from(

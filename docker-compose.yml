@@ -29,6 +29,10 @@ services:
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_BROWSER: 'on'
+      MINIO_DOMAIN: localhost
+      MINIO_SERVER_URL: http://localhost:9000
+      MINIO_BROWSER_REDIRECT_URL: http://localhost:9001
     volumes:
       - minio_data:/data
     command: server /data --console-address ":9001"
@@ -230,6 +234,8 @@ services:
       context: ./worker
       dockerfile: Dockerfile
     container_name: worker_service
+    ports:
+      - '3006:3006'
     env_file:
       - ./worker/.env.dev
     depends_on:
@@ -240,7 +246,7 @@ services:
       minio:
         condition: service_healthy
       asset:
-        condition: service_healthy # Wait for asset to create assets table
+        condition: service_healthy
     networks:
       - asset_network
     volumes:

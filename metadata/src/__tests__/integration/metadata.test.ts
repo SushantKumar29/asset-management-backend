@@ -6,7 +6,6 @@ describe('Metadata Controller Integration Tests', () => {
   let assetId: string;
   let assetCounter = 0;
 
-  // Helper function to create a test user
   const createTestUser = async () => {
     const result = await pool.query(
       `INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id`,
@@ -15,7 +14,6 @@ describe('Metadata Controller Integration Tests', () => {
     return result.rows[0].id;
   };
 
-  // Helper function to create a test asset
   const createTestAsset = async (userId: string) => {
     assetCounter++;
     const result = await pool.query(
@@ -35,7 +33,6 @@ describe('Metadata Controller Integration Tests', () => {
     return result.rows[0].id;
   };
 
-  // Helper function to create metadata
   const createTestMetadata = async (
     assetId: string,
     key: string,

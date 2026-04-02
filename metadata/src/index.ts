@@ -1,5 +1,4 @@
 import express from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import metadataRoutes from './routes/metadataRoutes';
@@ -13,12 +12,10 @@ const app = express();
 const port = process.env.PORT || 3003;
 
 app.use(helmet());
-app.use(cors());
 app.use(express.json());
 
 app.use('/api/metadata', metadataRoutes);
 
-// This is used to checks the service health and used in the docker compose
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'metadata' });
 });
@@ -27,7 +24,7 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    await setupDatabase(); // This is used to initialize the database
+    await setupDatabase();
     app.listen(port, () => {
       logger.info(`✅ Metadata service running on port ${port}`);
     });

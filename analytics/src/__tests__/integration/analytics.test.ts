@@ -64,7 +64,7 @@ describe('Analytics Controller Integration Tests', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(Number(response.body.data.summary.total_assets)).toBe(2);
+      expect(Number(response.body.data.total_assets)).toBe(2);
     });
   });
 

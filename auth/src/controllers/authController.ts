@@ -10,12 +10,10 @@ export const register = async (req: Request, res: Response, next: Function) => {
   try {
     const { email, password, name } = req.body;
 
-    // Here are some validation for blank fields
     if (!email || !password || !name) {
       throw new AppError('Missing required fields', 400);
     }
 
-    // Here are some validation for email and password
     if (!validateEmail(email)) {
       throw new AppError('Invalid email format', 400);
     }
@@ -51,7 +49,6 @@ export const login = async (req: Request, res: Response, next: Function) => {
   try {
     const { email, password } = req.body;
 
-    // Here are some validation for blank fields
     if (!email || !password) {
       throw new AppError('Email and password required', 400);
     }
@@ -106,9 +103,6 @@ export const getProfile = async (req: AuthRequest, res: Response, next: Function
 
 export const logout = async (req: AuthRequest, res: Response, next: Function) => {
   try {
-    // Since JWT is stateless, logout is handled client-side by removing the token
-    // For simplicity, we just return success
-
     res.status(200).json({
       success: true,
       message: 'Logged out successfully',

@@ -1,23 +1,13 @@
 import multer, { FileFilterCallback } from 'multer';
 import { Request } from 'express';
+import { ALLOWED_FILE_TYPES, MAX_FILE_COUNT, MAX_FILE_SIZE } from '../constants/files';
 
-const storage = multer.memoryStorage(); // Using memory storage for buffer access
+const storage = multer.memoryStorage();
 
-// Filtering the files with specific types
-const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-  const allowedTypes = [
-    'image/jpeg',
-    'image/png',
-    'image/gif',
-    'video/mp4',
-    'video/mpeg',
-    'application/pdf',
-    'application/msword', // MS word older (.doc)
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // MS word (.docx)
-    'text/plain',
-  ];
+type AllowedMimeType = (typeof ALLOWED_FILE_TYPES)[number];
 
-  if (allowedTypes.includes(file.mimetype)) {
+const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback): void => {
+  if (ALLOWED_FILE_TYPES.includes(file.mimetype as AllowedMimeType)) {
     cb(null, true);
   } else {
     cb(new Error('Invalid file type'));
@@ -28,10 +18,10 @@ export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 50 * 1024 * 1024, // Max 50MB
-    files: 10, // Max 10 files
+    fileSize: MAX_FILE_SIZE,
+    files: MAX_FILE_COUNT,
   },
 });
 
 export const uploadSingle = upload.single('file');
-export const uploadMultiple = upload.array('files', 10);
+export const uploadMultiple = upload.array('files', MAX_FILE_COUNT);

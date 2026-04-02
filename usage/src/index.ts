@@ -1,5 +1,4 @@
 import express from 'express';
-import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { setupDatabase } from './config/database';
@@ -15,13 +14,11 @@ const app = express();
 const port = process.env.PORT || 3004;
 
 app.use(helmet());
-app.use(cors());
 app.use(express.json());
 
 app.use('/api/usage', usageRoutes);
 app.use('/api/reports', reportRoutes);
 
-// This is used to checks the service health and used in the docker compose
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', service: 'usage' });
 });
@@ -30,8 +27,8 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    await setupDatabase(); // This is used to initialize the database
-    await setupRabbitMQ(); // This initializes the rabbitmq connection for queuing
+    await setupDatabase();
+    await setupRabbitMQ();
 
     app.listen(port, () => {
       logger.info(`✅ Usage service running on port ${port}`);

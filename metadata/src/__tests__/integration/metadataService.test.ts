@@ -6,7 +6,6 @@ describe('MetadataService Integration Tests', () => {
   let assetId: string;
   let assetCounter = 0;
 
-  // Helper function to create a test user
   const createTestUser = async () => {
     const result = await pool.query(
       `INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id`,
@@ -15,7 +14,6 @@ describe('MetadataService Integration Tests', () => {
     return result.rows[0].id;
   };
 
-  // Helper function to create a test asset
   const createTestAsset = async (userId: string) => {
     assetCounter++;
     const result = await pool.query(
@@ -44,7 +42,6 @@ describe('MetadataService Integration Tests', () => {
     await pool.query('DELETE FROM metadata');
   });
 
-  // Here, we are checking the ownership of an asset
   describe('checkAssetOwnership', () => {
     it('should return true for valid asset', async () => {
       const result = await metadataService.checkAssetOwnership(assetId, userId);
@@ -52,7 +49,6 @@ describe('MetadataService Integration Tests', () => {
     });
   });
 
-  // If the metadata us not found, it will be created, else it will be updated
   describe('upsert', () => {
     it('should create new metadata', async () => {
       const metadata = await metadataService.upsert(

@@ -125,7 +125,7 @@ router.use(
   '/auth',
   proxy(serviceUrls.auth, {
     proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
-      // Here, we need the auth token to be passed to the auth service. So we are forwarding all headers from original request
+      // Forward all headers from original request to pass the auth token
       proxyReqOpts.headers = {
         ...proxyReqOpts.headers,
         ...srcReq.headers,
@@ -148,6 +148,12 @@ router.use(
  *       - bearerAuth: []
  *     parameters:
  *        - name: status
+ *          in: query
+ *          type: string
+ *        - name: search
+ *          in: query
+ *          type: string
+ *        - name: type
  *          in: query
  *          type: string
  *        - name: limit
@@ -285,7 +291,7 @@ router.use('/assets', authenticate, (req, res, next) => {
     },
   };
 
-  // These options are for upload requests (It handles the multipart form data)
+  // Upload requests options (Handles the multipart form data)
   if (req.path.includes('/upload')) {
     proxyOptions.parseReqBody = false;
     proxyOptions.reqAsBuffer = false;
@@ -524,6 +530,129 @@ router.use(
 
 /**
  * @swagger
+ * /reports/report:
+ *   post:
+ *     summary: Create a new report
+ *     tags: [Reports]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Report name
+ *               type:
+ *                 type: string
+ *                 enum: [usage_summary, asset_activity, user_analytics]
+ *                 description: Type of report to generate
+ *               parameters:
+ *                 type: object
+ *                 description: Report generation parameters
+ *                 properties:
+ *                   days:
+ *                     type: integer
+ *                     default: 30
+ *                   assetId:
+ *                     type: string
+ *                   format:
+ *                     type: string
+ *                     enum: [pdf, csv, json]
+ *                     default: pdf
+ *           required:
+ *             - name
+ *             - type
+ *     responses:
+ *       201:
+ *         description: Report created successfully
+ *       400:
+ *         description: Invalid request parameters
+ *       401:
+ *         description: Not authenticated
+ */
+
+/**
+ * @swagger
+ * /reports/my-reports:
+ *   get:
+ *     summary: Get all reports created by the authenticated user
+ *     tags: [Reports]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: page
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number for pagination
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of reports per page
+ *       - name: status
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: [pending, processing, completed, failed]
+ *         description: Filter by report status
+ *       - name: type
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Filter by report type
+ *     responses:
+ *       200:
+ *         description: Returns list of user's reports
+ *       401:
+ *         description: Not authenticated
+ */
+
+/**
+ * @swagger
+ * /reports/download/{reportId}:
+ *   get:
+ *     summary: Download a generated report
+ *     tags: [Reports]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: reportId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the report to download
+ *     responses:
+ *       200:
+ *         description: Report file downloaded successfully
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Report not found
+ *       410:
+ *         description: Report expired or no longer available
+ */
+
+// Reports routes
+router.use(
+  '/reports',
+  authenticate,
+  proxy(serviceUrls.usage, {
+    proxyReqPathResolver: (req) => {
+      return `/api/reports${req.url}`;
+    },
+  })
+);
+
+/**
+ * @swagger
  * /analytics/summary:
  *   get:
  *     summary: Get asset summary for the authenticated user
@@ -587,6 +716,17 @@ router.use(
   proxy(serviceUrls.analytics, {
     proxyReqPathResolver: (req) => {
       return `/api/analytics${req.url}`;
+    },
+  })
+);
+
+// Worker routes
+router.use(
+  '/worker',
+  authenticate,
+  proxy(serviceUrls.worker, {
+    proxyReqPathResolver: (req) => {
+      return `/api/worker${req.url}`;
     },
   })
 );

@@ -40,7 +40,7 @@ app.use(errorHandler);
 
 /*
   In the the below beforeAll function, we are creating the DB and tables.
-  Here we are using 2 pool instances. We cannot create a database and then immediately use it with the same pool connection because:
+  2 pool instances are used. We cannot create a database and then immediately use it with the same pool connection because:
   - When we connect to PostgreSQL, we're connected to a specific database (here 'postgres')
   - We can't switch databases on an existing connection
   - To create a new database, we must be connected to a different database (usually 'postgres')
@@ -103,14 +103,14 @@ beforeAll(async () => {
   `);
 
   /* 
-    This is dependency injection - it replaces the app's database connection with our test database connection
-    In the above, we are importing the db from the database.ts and we are overriding the development DB with out test DB here
+    Dependency injection - it replaces the app's database connection with our test database connection
+    In the above, the db is imported from the database.ts and here the development DB is overrided with the test DB
    */
   // eslint-disable-next-line no-import-assign
   Object.defineProperty(dbModule, 'db', { value: pool });
 });
 
-// After finishing the tests, we are closing the connection
+// After finishing the tests, Close the connection
 afterAll(async () => {
   await pool?.end();
 });

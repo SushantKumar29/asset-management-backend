@@ -14,7 +14,6 @@ export const db = new Pool({
 
 export const setupDatabase = async () => {
   try {
-    // This is the users table used to store the basic information about the users
     await db.query(`
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

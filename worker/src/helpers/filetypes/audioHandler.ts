@@ -12,13 +12,13 @@ import { FfprobeData } from 'fluent-ffmpeg';
 export const processAudio = async (buffer: Buffer, assetId: string) => {
   logger.info('Processing audio for asset:', assetId);
 
-  const tempFile = path.join('/tmp', `audio-${assetId}.mp3`); // Here we are creating a temp file because ffmpeg needs a file path instead of a buffer
-  fs.writeFileSync(tempFile, buffer); // Here we are writing the buffer to the temp file
+  const tempFile = path.join('/tmp', `audio-${assetId}.mp3`); // Create a temp file because ffmpeg needs a file path instead of a buffer
+  fs.writeFileSync(tempFile, buffer); // Write the buffer to the temp file
 
   try {
     /* 
-      Here we are extracting the video metadata
-      The reason we used promise here is that the ffprobe() is a callback based function and it can cause callback hell
+      Extract the video metadata
+      ffprobe() is a callback based function and it can cause callback hell.
       So using promise makes sure the metadata is fetched before we process the response
     */
     const metadata = await new Promise<FfprobeData>((resolve, reject) => {
@@ -28,7 +28,7 @@ export const processAudio = async (buffer: Buffer, assetId: string) => {
       });
     });
 
-    // Here we are getting the audio codec info (aac, mp3, etc.)
+    // Get the audio codec info (aac, mp3, etc.)
     const audioStream = metadata.streams.find((s) => s.codec_type === 'audio');
 
     const results = {
@@ -46,7 +46,7 @@ export const processAudio = async (buffer: Buffer, assetId: string) => {
   } catch (error) {
     logger.error('Audio processing failed:', error);
 
-    // Here if error is there, still the response will have basic metadata
+    // Even if with error, still the response will have basic metadata
     return {
       metadata: {
         size: buffer.length,
@@ -54,6 +54,6 @@ export const processAudio = async (buffer: Buffer, assetId: string) => {
       },
     };
   } finally {
-    fs.unlinkSync(tempFile); // After processing the audio, we are deleting the temp file
+    fs.unlinkSync(tempFile); // Delete the temp file
   }
 };

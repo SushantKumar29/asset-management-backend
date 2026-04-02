@@ -9,7 +9,6 @@ import { errorHandler } from '../middleware/errorHandler';
 import * as dbModule from '../config/database';
 import { AuthRequest } from '../types/auth';
 
-// The asset routes needs authentication before proceeding. So we are creating a mock user using the auth middleware format
 jest.mock('../middleware/auth', () => ({
   authenticate: (req: AuthRequest, res: Response, next: NextFunction) => {
     req.user = {
@@ -21,7 +20,6 @@ jest.mock('../middleware/auth', () => ({
   },
 }));
 
-// Here we are mocking the external service rabbitmq
 jest.mock('../config/rabbitmq', () => ({
   rabbitMqChannel: {
     sendToQueue: jest.fn(),
@@ -121,12 +119,10 @@ beforeAll(async () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
-
   // eslint-disable-next-line no-import-assign
   Object.defineProperty(dbModule, 'db', { value: pool });
 });
 
-// After finishing the tests, we are closing the connection
 afterAll(async () => {
   await pool?.end();
 });

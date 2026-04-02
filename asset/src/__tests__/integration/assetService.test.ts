@@ -5,7 +5,6 @@ describe('AssetService Integration Tests', () => {
   let userId: string;
   let assetCounter = 0;
 
-  // Helper function to create a test user
   const createTestUser = async (
     email: string = 'assetuser@test.com',
     name: string = 'Asset User'
@@ -18,7 +17,6 @@ describe('AssetService Integration Tests', () => {
     return result.rows[0].id;
   };
 
-  // Helper function to create a test asset with customizable data
   const createTestAsset = async (userId: string, overrides: object = {}) => {
     const defaultAsset = {
       name: 'test-file.jpg',
@@ -37,7 +35,6 @@ describe('AssetService Integration Tests', () => {
     return await assetService.create(assetData);
   };
 
-  // Helper function to create multiple test assets
   const createTestAssets = async (userId: string, count: number, overrides: object = {}) => {
     const assets = [];
     for (let i = 1; i <= count; i++) {
@@ -86,7 +83,6 @@ describe('AssetService Integration Tests', () => {
       expect(customAsset.checksum).toBe('custom123');
       expect(customAsset.description).toBe('Custom description');
 
-      // Verify fileSize in database
       const result = await pool.query('SELECT file_size FROM assets WHERE id = $1', [
         customAsset.id,
       ]);

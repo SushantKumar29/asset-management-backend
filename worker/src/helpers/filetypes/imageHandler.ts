@@ -14,7 +14,6 @@ export const processImage = async (buffer: Buffer, assetId: string) => {
 
   const results: { metadata?: unknown; thumbnails?: string[] } = {};
 
-  // Here we are extracting the image metadata
   const metadata = await sharp(buffer).metadata();
   results.metadata = {
     width: metadata.width,
@@ -26,10 +25,9 @@ export const processImage = async (buffer: Buffer, assetId: string) => {
     size: buffer.length,
   };
 
-  const sizes = [100, 300, 600]; // Here we are defining the sizes for thumbnails
+  const sizes = [100, 300, 600]; // Define the sizes for thumbnails
   results.thumbnails = [];
 
-  // Here we are iterating the sizes to make the thumbnails
   for (const size of sizes) {
     const thumbnailBuffer = await sharp(buffer)
       .resize(size, size, { fit: 'inside', withoutEnlargement: true })
@@ -37,7 +35,7 @@ export const processImage = async (buffer: Buffer, assetId: string) => {
       .toBuffer();
 
     const thumbnailKey = `thumbnails/${assetId}/thumbnail-${size}.jpg`;
-    // After creating the thumbnail, we are uploading it to MinIO
+    // Upload thumbnail it to MinIO
     await minioClient.putObject(
       process.env.MINIO_BUCKET!,
       thumbnailKey,

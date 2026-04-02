@@ -7,8 +7,6 @@ export default {
   setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   verbose: true,
   testTimeout: 10000,
-  // Force exit after tests
   forceExit: true,
-  // Detect open handles
   detectOpenHandles: true,
 };

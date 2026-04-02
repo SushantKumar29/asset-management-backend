@@ -1,11 +1,10 @@
 import { rabbitMqChannel } from '../config/rabbitmq';
 import logger from '../utils/logger';
 
-// This is a function to trigger report generation
 export const generateReport = async (
   userId: string,
   reportType: string,
-  dateRange?: unknown,
+  dateRange?: { start: Date; end: Date },
   action?: string
 ) => {
   try {
@@ -17,8 +16,11 @@ export const generateReport = async (
           action: 'report',
           userId,
           reportType,
-          dateRange: dateRange,
-          trackingAction: action, // This is Optional ('view', 'download', etc) | Defaults to 'all'
+          dateRange: dateRange || {
+            start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            end: new Date(),
+          },
+          trackingAction: action,
           triggeredAt: new Date().toISOString(),
         })
       )

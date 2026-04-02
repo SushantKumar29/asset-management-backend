@@ -8,7 +8,6 @@ import { errorHandler } from '../middleware/errorHandler';
 import * as dbModule from '../config/database';
 import { AuthRequest } from '../types/auth';
 
-// As we are caching the metadata results, so here we are mocking the cache
 jest.mock('../utils/cache', () => ({
   cache: {
     get: jest.fn().mockResolvedValue(null),
@@ -20,7 +19,6 @@ jest.mock('../utils/cache', () => ({
   },
 }));
 
-// The asset routes needs authentication before proceeding. So we are creating a mock user using the auth middleware format
 jest.mock('../middleware/auth', () => ({
   authenticate: (req: AuthRequest, res: Response, next: NextFunction) => {
     req.user = {
@@ -32,7 +30,6 @@ jest.mock('../middleware/auth', () => ({
   },
 }));
 
-// Here we are importing the test environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env.test') });
 
 const config = {
@@ -43,10 +40,8 @@ const config = {
   password: process.env.TEST_DB_PASSWORD || 'postgres',
 };
 
-// Here we are creating the test database
 export let pool: Pool;
 
-// Here we are creating the app instance for test and the middlewares and routes are added
 export const app = express();
 app.use(express.json());
 app.use('/api/metadata', metadataRoutes);
@@ -125,14 +120,13 @@ beforeAll(async () => {
   `);
 
   /* 
-    This is dependency injection - it replaces the app's database connection with our test database connection
+    Dependency injection - it replaces the app's database connection with our test database connection
     In the above, we are importing the db from the database.ts and we are overriding the development DB with out test DB here
    */
   // eslint-disable-next-line no-import-assign
   Object.defineProperty(dbModule, 'db', { value: pool });
 });
 
-// After finishing the tests, we are closing the connection
 afterAll(async () => {
   await pool?.end();
 });

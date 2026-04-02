@@ -29,6 +29,17 @@ export const getFileType = (mimeType: string): string => {
   return 'other';
 };
 
+export const getMimeType = (assetType: string): string | string[] => {
+  const types: Record<string, string | string[]> = {
+    image: 'image/',
+    video: 'video/',
+    audio: 'audio/',
+    document: ['application/', 'text/'],
+  };
+
+  return types[assetType] || 'other';
+};
+
 export const parseTags = (tags: string | string[]): string[] => {
   if (!tags) return [];
   if (Array.isArray(tags)) return tags;

@@ -14,19 +14,20 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
 app.use(helmet());
-app.use(cors());
+app.use(
+  cors({
+    origin: ['http://localhost:5173'],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(requestLogger);
 
-// Swagger Documentation - BEFORE API routes
 app.use('/api-docs', swaggerRoutes);
 
-// API Routes
 app.use('/api', gatewayRoutes);
 
-// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -35,13 +36,11 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 404 handler - MUST be BEFORE errorHandler
 app.use((req, res) => {
   logger.info(`[Gateway] 404: ${req.method} ${req.path}`);
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Error handler - MUST be LAST
 app.use(errorHandler);
 
 app.listen(port, () => {

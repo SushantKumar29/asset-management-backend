@@ -14,7 +14,6 @@ export const db = new Pool({
 
 export const setupDatabase = async () => {
   try {
-    // This is the assets table used to store the basic information about the assets
     await db.query(`
       CREATE TABLE IF NOT EXISTS assets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -34,7 +33,6 @@ export const setupDatabase = async () => {
       )
     `);
 
-    // This is the tags table used to store the tags
     await db.query(`
       CREATE TABLE IF NOT EXISTS tags (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -43,7 +41,6 @@ export const setupDatabase = async () => {
       )
     `);
 
-    // This is the asset_tags table used to store the relationship between assets and tags
     await db.query(`
       CREATE TABLE IF NOT EXISTS asset_tags (
         asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
@@ -54,12 +51,10 @@ export const setupDatabase = async () => {
       )
     `);
 
-    // This index is created to speed up the duplicate checking
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_assets_checksum ON assets(checksum) WHERE checksum IS NOT NULL
     `);
 
-    // This index is created to speed up the query of getting assets by owner and status
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_assets_owner_status ON assets(owner_id, status)
     `);

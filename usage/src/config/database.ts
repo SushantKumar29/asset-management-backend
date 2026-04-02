@@ -14,7 +14,6 @@ export const db = new Pool({
 
 export const setupDatabase = async () => {
   try {
-    // This is the usage_logs table used to store the usage tracking
     await db.query(`
       CREATE TABLE IF NOT EXISTS usage_logs (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -29,7 +28,6 @@ export const setupDatabase = async () => {
       )
     `);
 
-    // This is the reports table used to store the data of generated reports
     await db.query(`
       CREATE TABLE IF NOT EXISTS reports (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -41,17 +39,14 @@ export const setupDatabase = async () => {
       )
     `);
 
-    // This index is created to speed up the query of getting the usage logs filtered by asset_id and created_at date
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_usage_asset_date ON usage_logs(asset_id, created_at)
     `);
 
-    // This index is created to speed up the query of getting the reports filtered by created_at date
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at)
     `);
 
-    // This index is created to speed up the query of getting the reports filtered by user_id
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id)
     `);

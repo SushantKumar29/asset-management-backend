@@ -1,7 +1,6 @@
 import { db } from '../config/database';
 
 export const metadataService = {
-  // This function is used to Insert into metadata, and on conflicting the asset_id and key, it will update metadata
   async upsert(
     assetId: string,
     key: string, // Represents what type of metadata it is ('description', 'author', 'resolution', 'processing_status' etc)
@@ -21,5 +20,3 @@ export const metadataService = {
     );
   },
 };
-
-// EXCLUDED is a PostgreSQL special table that refers to the values that would have been inserted if there was no conflict. It's used in ON CONFLICT ... DO UPDATE clauses.

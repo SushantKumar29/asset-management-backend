@@ -16,7 +16,6 @@ export const setMetadata = async (req: AuthRequest, res: Response, next: Functio
     const { key = 'processing_status', value = 'completed', data = {}, type = 'text' } = req.body;
     const userId = req.user?.id;
 
-    // Check asset ownership
     const hasAsset = await metadataService.checkAssetOwnership(assetId, userId);
     if (!hasAsset) {
       throw new AppError('Asset not found', 404);
@@ -24,7 +23,6 @@ export const setMetadata = async (req: AuthRequest, res: Response, next: Functio
 
     const metadata = await metadataService.upsert(assetId, key, value, data, type, userId);
 
-    // Clear cache
     await cache.clear(cache.key.metadata(userId, assetId));
 
     res.json({

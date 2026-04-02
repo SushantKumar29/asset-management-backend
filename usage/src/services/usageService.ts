@@ -1,12 +1,6 @@
 import { db } from '../config/database';
 
-/*
-  This is the asset service which handles the DB operations on the assets table
-  This service is currently being used by the assetsController
-*/
-
 export const usageService = {
-  // This function is used to create a new usage log
   async create(data: {
     assetId: string;
     userId?: string;
@@ -32,7 +26,6 @@ export const usageService = {
     return result.rows[0];
   },
 
-  // This function is used to get usage logs for an asset
   async getAssetUsage(assetId: string, days: number) {
     const result = await db.query(
       `SELECT 
@@ -50,7 +43,6 @@ export const usageService = {
     return result.rows;
   },
 
-  // This function is used to get recent activity for a user
   async getRecentActivity(userId: string, limit: number) {
     const result = await db.query(
       `SELECT * FROM usage_logs
@@ -62,7 +54,6 @@ export const usageService = {
     return result.rows;
   },
 
-  // This function is used to get the usage summary for a user
   async getUsageSummary(userId: string, days: number) {
     const result = await db.query(
       `SELECT 

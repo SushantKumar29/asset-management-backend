@@ -4,7 +4,6 @@ import { setMetadata, getMetadata, deleteMetadata } from '../controllers/metadat
 
 const router = Router();
 
-// All routes require authentication
 router.use(authenticate);
 
 router.post('/:assetId', setMetadata);

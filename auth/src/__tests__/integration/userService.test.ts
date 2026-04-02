@@ -2,7 +2,6 @@ import { userService } from '../../services/userService';
 import { pool } from '../setup';
 
 describe('UserService Integration Tests', () => {
-  // This helper function is used to create a test user before running the tests
   const createTestUser = async (email: string = 'test@test.com', name: string = 'Test User') => {
     return await userService.create(email, 'password123', name);
   };

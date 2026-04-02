@@ -24,7 +24,6 @@ export const db = new Pool({
 
 export const setupDatabase = async () => {
   try {
-    // This is the metadata table used to store the metadata for an asset
     await db.query(`
       CREATE TABLE IF NOT EXISTS metadata (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -40,17 +39,14 @@ export const setupDatabase = async () => {
       )
     `);
 
-    // This index is created to speed up the query of getting the metadata for an asset
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_metadata_asset_id ON metadata(asset_id)
     `);
 
-    // This index is created to speed up the query of getting the metadata for a specific key ('description', 'author', 'resolution', 'processing_status' etc)
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_metadata_key ON metadata(key)
     `);
 
-    // This index is created to speed up the query of getting the metadata for a specific user
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_metadata_created_by ON metadata(created_by);
     `);

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import logger from '../utils/logger';
 
 /*
-  This App Error class is used to handle the erorrs better with status codes
+  App Error class is used to handle the erorrs better with status codes
   When called as: new AppError('Error message', 400)
     Step 1: Error constructor is called first (This creates the base Error object)
     Step 2: Then AppError constructor adds properties (Adds custom statusCode and Overrides the default 'Error' name)

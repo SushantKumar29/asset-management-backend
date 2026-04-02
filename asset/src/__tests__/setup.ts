@@ -5,12 +5,11 @@ import dotenv from 'dotenv';
 import path from 'path';
 import assetRoutes from '../routes/assetRoutes';
 import * as dbModule from '../config/database';
-import cors from 'cors';
 import helmet from 'helmet';
 import { AuthRequest } from '../types/auth';
 
-// Here we are mocking the external services like minio and rabbitmq
 jest.mock('../config/minio', () => ({
+  getPublicUrl: jest.fn((fileName) => `http://localhost:9000/test-bucket/${fileName}`),
   minioClient: {
     putObject: jest.fn().mockResolvedValue({}),
     bucketExists: jest.fn().mockResolvedValue(true),
@@ -27,7 +26,6 @@ jest.mock('../config/rabbitmq', () => ({
   setupRabbitMQ: jest.fn().mockResolvedValue(undefined),
 }));
 
-// The asset routes needs authentication before proceeding. So we are creating a mock user using the auth middleware format
 jest.mock('../middleware/auth', () => ({
   authenticate: (req: AuthRequest, res: Response, next: NextFunction) => {
     req.user = {
@@ -39,7 +37,6 @@ jest.mock('../middleware/auth', () => ({
   },
 }));
 
-// Here we are importing the test environment variables
 dotenv.config({ path: path.join(__dirname, '../../.env.test') });
 
 const config = {
@@ -50,19 +47,14 @@ const config = {
   password: process.env.TEST_DB_PASSWORD || 'postgres',
 };
 
-// Here we are creating a pool instance
 export let pool: Pool;
 
-// Here we are creating the app instance for test and the middlewares and routes are added
 export const app = express();
 app.use(helmet());
-app.use(cors());
 app.use(express.json());
 
 app.use('/api/assets', assetRoutes);
 
-// This is a custom error handler for the test environment
-// This was needed because the actual errorHandler middleware was somehow not receiving the error correctly and the error tests are failing
 app.use(
   (
     err: { message: string; statusCode: number },
@@ -87,7 +79,6 @@ app.use(
   - After creating the database, we need a new connection to that specific database
 */
 beforeAll(async () => {
-  // Create test DB if not exists
   const adminPool = new Pool({ ...config, database: 'postgres' });
   await adminPool.query('SELECT 1');
 
@@ -106,11 +97,9 @@ beforeAll(async () => {
   }
   await adminPool.end();
 
-  // Connect to test DB
   pool = new Pool(config);
   await pool.query('SELECT 1');
 
-  // Create all tables needed for tests
   await pool.query(`
     DROP TABLE IF EXISTS asset_tags CASCADE;
     DROP TABLE IF EXISTS tags CASCADE;
@@ -160,14 +149,13 @@ beforeAll(async () => {
   `);
 
   /* 
-    This is dependency injection - it replaces the app's database connection with our test database connection
+    Dependency injection - it replaces the app's database connection with our test database connection
     In the above, we are importing the db from the database.ts and we are overriding the development DB with out test DB here
    */
   // eslint-disable-next-line no-import-assign
   Object.defineProperty(dbModule, 'db', { value: pool });
 });
 
-// After finishing the tests, we are closing the connection
 afterAll(async () => {
   await pool?.end();
 });

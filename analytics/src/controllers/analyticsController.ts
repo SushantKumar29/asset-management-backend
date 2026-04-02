@@ -6,9 +6,9 @@ export const getAssetSummary = async (req: AuthRequest, res: Response, next: Fun
   try {
     const userId = req.user?.id;
 
-    const summary = await analyticsService.getAssetSummary(userId);
+    const result = await analyticsService.getAssetSummary(userId);
 
-    res.json({ success: true, data: { summary } });
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }

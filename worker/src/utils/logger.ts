@@ -1,7 +1,7 @@
 import winston from 'winston';
 
 /*
-  This is a basic logger file to log the events in the worker service using winston
+  Basic logger file to log the events in the worker service using winston
   It creates an instance of winston logger with the createLogger method with necessary configuration
 
   Result:
