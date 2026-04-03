@@ -3,8 +3,14 @@ node_modules/
 dist/
 */dist
 .env
-.env.*
+.env.dev
 !.env.dev
+*.env.dev
+
+.env.test
+!.env.test
+*.env.test
+
 .DS_Store
 *.log
 coverage/

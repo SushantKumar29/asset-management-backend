@@ -15,12 +15,12 @@ export const generateReport = async (
         JSON.stringify({
           action: 'report',
           userId,
-          reportType,
+          reportType, // usage, performance, compliance, summary
           dateRange: dateRange || {
             start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
             end: new Date(),
           },
-          trackingAction: action,
+          trackingAction: action, // view | download
           triggeredAt: new Date().toISOString(),
         })
       )

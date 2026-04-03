@@ -7,36 +7,6 @@ import { rabbitMqChannel } from '../config/rabbitmq';
 import { parseTags } from '../utils/fileUtils';
 import { AuthRequest } from '../types/auth';
 
-export const uploadAsset = async (req: AuthRequest, res: Response, next: Function) => {
-  try {
-    const file = req.file;
-    if (!file) {
-      throw new AppError('No file uploaded', 400);
-    }
-
-    const { description, tags } = req.body;
-    const userId = req.user?.id;
-
-    const normalizedTags = parseTags(tags);
-    const result = await processSingleFileUpload(file, userId, description, normalizedTags);
-
-    if (result.duplicate) {
-      res.status(409).json({
-        success: false,
-        message: `Duplicate file detected. Already exists as: ${result.existingName}`,
-      });
-    }
-
-    res.status(201).json({
-      success: true,
-      message: 'Asset uploaded successfully',
-      data: result.asset,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 export const uploadAssets = async (req: AuthRequest, res: Response, next: Function) => {
   try {
     const files = req.files as Express.Multer.File[];

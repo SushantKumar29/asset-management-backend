@@ -23,5 +23,4 @@ export const upload = multer({
   },
 });
 
-export const uploadSingle = upload.single('file');
 export const uploadMultiple = upload.array('files', MAX_FILE_COUNT);

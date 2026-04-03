@@ -11,71 +11,134 @@ export const processSingleFileUpload = async (
   description?: string,
   tags?: string[]
 ) => {
-  const checksum = calculateChecksum(file.buffer);
+  let fileName: string | null = null;
 
-  const existingAsset = await assetService.findDuplicate(checksum, userId);
+  try {
+    const checksum = calculateChecksum(file.buffer);
 
-  if (existingAsset) {
-    return { duplicate: true, fileName: file.originalname, existingName: existingAsset.name };
+    const existingAsset = await assetService.findDuplicate(checksum, userId);
+    if (existingAsset) {
+      return { duplicate: true, fileName: file.originalname, existingName: existingAsset.name };
+    }
+
+    fileName = generateFileName(file.originalname);
+    await uploadToMinIO(file, fileName, checksum);
+
+    const asset = await createAssetRecord(file, fileName, checksum, userId, description);
+
+    await addTagsToAsset(asset.id, userId, tags);
+    await queueForProcessing(asset.id, fileName, file, checksum, userId);
+
+    return { duplicate: false, asset };
+  } catch (error) {
+    // Cleanup: Remove file from MinIO if upload succeeded but later steps failed
+    if (fileName) {
+      await cleanupFailedUpload(fileName);
+    }
+
+    logger.error('File upload process failed:', error);
+    throw new Error(
+      `File upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
+};
 
-  const fileName = generateFileName(file.originalname);
+// Helper functions
+const uploadToMinIO = async (file: Express.Multer.File, fileName: string, checksum: string) => {
+  try {
+    await minioClient.putObject(process.env.MINIO_BUCKET!, fileName, file.buffer, file.size, {
+      'Content-Type': file.mimetype,
+      'X-Amz-Meta-Checksum': checksum,
+      'X-Amz-Acl': 'public-read',
+    });
+  } catch (error) {
+    logger.error('MinIO upload failed:', error);
+    throw new Error(
+      `Storage upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+};
 
-  await minioClient.putObject(process.env.MINIO_BUCKET!, fileName, file.buffer, file.size, {
-    'Content-Type': file.mimetype,
-    'X-Amz-Meta-Checksum': checksum,
-    'X-Amz-Acl': 'public-read', // Set public read access for metadata (not all MinIO versions support this)
-  });
-
-  // Generate public URL
+const createAssetRecord = async (
+  file: Express.Multer.File,
+  fileName: string,
+  checksum: string,
+  userId: string,
+  description?: string
+) => {
   const publicUrl = getPublicUrl(fileName);
-
   const metadata = {
     fileType: getFileType(file.mimetype),
     originalName: file.originalname,
     uploadedAt: new Date().toISOString(),
   };
 
-  const asset = await assetService.create({
-    name: file.originalname,
-    description: description || null,
-    fileName: fileName,
-    fileSize: file.size,
-    mimeType: file.mimetype,
-    path: publicUrl,
-    checksum: checksum,
-    userId: userId,
-    metadata: metadata,
-  });
-
-  if (tags && tags.length > 0) {
-    try {
-      await tagService.addTagsToAsset(asset.id, userId, tags);
-    } catch (error) {
-      logger.error('Error adding tags:', error);
-    }
+  try {
+    return await assetService.create({
+      name: file.originalname,
+      description: description || null,
+      fileName: fileName,
+      fileSize: file.size,
+      mimeType: file.mimetype,
+      path: publicUrl,
+      checksum: checksum,
+      userId: userId,
+      metadata: metadata,
+    });
+  } catch (error) {
+    logger.error('Database create failed:', error);
+    throw new Error(
+      `Database record creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
+};
 
-  // Send to RabbitMQ for processing
-  if (rabbitMqChannel) {
+const addTagsToAsset = async (assetId: string, userId: string, tags?: string[]) => {
+  if (!tags || tags.length === 0) return;
+
+  try {
+    await tagService.addTagsToAsset(assetId, userId, tags);
+  } catch (error) {
+    logger.error('Error adding tags (non-critical):', error);
+    // Don't throw - tags are not critical
+  }
+};
+
+const queueForProcessing = async (
+  assetId: string,
+  fileName: string,
+  file: Express.Multer.File,
+  checksum: string,
+  userId: string
+) => {
+  if (!rabbitMqChannel) return;
+
+  try {
     rabbitMqChannel.sendToQueue(
       'asset_processing',
       Buffer.from(
         JSON.stringify({
-          assetId: asset.id,
+          assetId,
           action: 'process',
           filePath: fileName,
           mimeType: file.mimetype,
-          checksum: checksum,
+          checksum,
           fileSize: file.size,
-          userId: userId,
+          userId,
         })
       )
     );
+  } catch (error) {
+    logger.error('Failed to process file:', error);
+    // Don't throw - processing can be retried later
   }
+};
 
-  return {
-    duplicate: false,
-    asset,
-  };
+const cleanupFailedUpload = async (fileName: string) => {
+  try {
+    await minioClient.removeObject(process.env.MINIO_BUCKET!, fileName);
+    logger.info(`Cleaned up file ${fileName} from MinIO after upload failure`);
+  } catch (cleanupError) {
+    logger.error('Failed to cleanup MinIO file:', cleanupError);
+  }
 };

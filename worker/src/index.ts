@@ -7,6 +7,7 @@ import { handleAssetProcessing } from './helpers/messageHandler';
 import jobRoutes from './routes/jobRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import logger from './utils/logger';
+
 /*
   Main function to start the worker service.
   Here we have used the RabbitMQ for queuing the background processes.

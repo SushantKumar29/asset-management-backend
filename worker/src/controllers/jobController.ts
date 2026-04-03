@@ -14,8 +14,8 @@ export const getJobs = async (req: AuthRequest, res: Response, next: NextFunctio
 
 export const getJobDetails = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { jobId } = req.params;
-    const job = await jobService.getJobDetails(jobId);
+    const { id } = req.params;
+    const job = await jobService.getJobDetails(id);
     res.json({ success: true, data: job });
   } catch (error) {
     next(error);

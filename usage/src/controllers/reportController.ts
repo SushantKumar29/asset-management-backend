@@ -4,30 +4,21 @@ import { reportService } from '../services/reportService';
 import { generateReport } from '../helpers/reportGenerate';
 import { AppError } from '../middleware/errorHandler';
 import { AuthRequest } from '../types/auth';
+import { REPORT_ACTION_MAP } from '../constants/reports';
 
 export const createReport = async (req: AuthRequest, res: Response, next: Function) => {
   try {
-    const { type, from, to } = req.body;
+    const { type, from, to } = req.body; // type = usage | compliance | performance | summary
     const userId = req.user?.id;
-
-    const actionMap: Record<string, string | undefined> = {
-      usage: undefined,
-      performance: undefined,
-      compliance: 'view',
-      summary: undefined,
-    };
 
     const result = await generateReport(
       userId,
       type,
       { start: new Date(from), end: new Date(to) },
-      actionMap[type]
+      REPORT_ACTION_MAP.view // Default view action
     );
 
-    res.json({
-      success: true,
-      data: result,
-    });
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }
@@ -40,10 +31,7 @@ export const getMyReports = async (req: AuthRequest, res: Response, next: Functi
 
     const reports = await reportService.getUserReports(userId, Number(limit));
 
-    res.json({
-      success: true,
-      data: reports,
-    });
+    res.json({ success: true, data: reports });
   } catch (error) {
     next(error);
   }
@@ -61,7 +49,9 @@ export const downloadReport = async (req: AuthRequest, res: Response, next: Func
     }
 
     const doc = new PDFDocument();
-    const filename = `${report.report_type}-report-${report.created_at.toISOString().split('T')[0]}.pdf`;
+    const filename = `${report.report_type}-report-${
+      report.created_at.toISOString().split('T')[0]
+    }.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

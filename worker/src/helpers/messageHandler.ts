@@ -1,5 +1,5 @@
 import { Channel, Message } from 'amqplib';
-import { processAsset, generateReport, checkDuplicates, deleteAssetFiles } from './assetHandler';
+import { processAsset, generateReport, deleteAssetFiles } from './assetHandler';
 import logger from '../utils/logger';
 import { jobService } from '../services/jobService';
 
@@ -26,11 +26,6 @@ export const handleAssetProcessing = async (msg: Message, channel: Channel) => {
       case 'report':
         jobId = await jobService.createJob('report', undefined, { reportType: data.reportType });
         break;
-      case 'duplicate':
-        jobId = await jobService.createJob('duplicate_check', data.assetId, {
-          checksum: data.checksum,
-        });
-        break;
       case 'delete':
         jobId = await jobService.createJob('delete', data.assetId);
         break;
@@ -47,9 +42,6 @@ export const handleAssetProcessing = async (msg: Message, channel: Channel) => {
         break;
       case 'report':
         await generateReport(data, jobId);
-        break;
-      case 'duplicate':
-        await checkDuplicates(data, jobId);
         break;
       case 'delete':
         await deleteAssetFiles(data, jobId);

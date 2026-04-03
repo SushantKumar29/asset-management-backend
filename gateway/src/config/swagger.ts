@@ -1,4 +1,4 @@
-import swaggerJsdoc from 'swagger-jsdoc'; // swagger-jsdoc library converts JSDoc comments into OpenAPI specifications
+import swaggerJsdoc from 'swagger-jsdoc';
 
 const PORT = process.env.PORT || 3000;
 

@@ -1,0 +1,48 @@
+name: Asset Management CI
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Security Audit
+        run: npm audit --production
+
+      - name: Run Lint
+        run: npm run lint
+
+      - name: Build services
+        run: docker compose build
+
+      - name: Start services and run tests
+        run: |
+          # Start postgres first
+          docker compose up -d postgres
+
+          # Wait for postgres to be ready
+          sleep 5
+
+          # Run all tests
+          npm run test
+
+          # Stop everything
+          docker compose down -v
+
+      - name: Stop and clean up
+        run: docker compose down -v

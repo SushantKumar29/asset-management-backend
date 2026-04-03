@@ -73,7 +73,9 @@ export const jobService = {
       params.push(status);
     }
 
-    query += ` GROUP BY j.id, a.name ORDER BY j.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    query += ` GROUP BY j.id, a.name ORDER BY j.created_at DESC LIMIT $${
+      params.length + 1
+    } OFFSET $${params.length + 2}`;
     params.push(limit, offset);
 
     const result = await db.query(query, params);

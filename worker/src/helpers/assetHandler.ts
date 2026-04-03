@@ -1,4 +1,3 @@
-// helpers/assetHandler.ts
 import logger from '../utils/logger';
 import { getFileBuffer } from '../utils/fileBuffer';
 import {
@@ -21,10 +20,10 @@ import { minioClient } from '../config/minio';
 import {
   AssetProcessingParams,
   DeleteAssetFilesParams,
-  DuplicateCheckParams,
   ReportGenerationParams,
 } from '../types/assetTypes';
 import { jobService } from '../services/jobService';
+import { REPORT_TYPE } from '../constants/reports';
 
 const fileHandlers: Record<string, Function> = {
   image: processImage,
@@ -142,7 +141,7 @@ export const deleteAssetFiles = async (data: DeleteAssetFilesParams, jobId?: str
 
 export const generateReport = async (data: ReportGenerationParams, jobId?: string) => {
   try {
-    const { userId, reportType, dateRange, trackingAction } = data;
+    const { userId, reportType, dateRange, trackingAction } = data; // reportType = usage | performance | compliance | summary
 
     const { start, end } = dateRange;
 
@@ -155,21 +154,18 @@ export const generateReport = async (data: ReportGenerationParams, jobId?: strin
     }
 
     let stats;
-    if (reportType === 'performance') {
+    if (reportType === REPORT_TYPE.performance) {
       stats = await reportService.getPerformanceStats(start, end);
-    } else if (reportType === 'compliance') {
+    } else if (reportType === REPORT_TYPE.compliance) {
       stats = await reportService.getComplianceStats(start, end);
     } else {
-      stats = await reportService.getUsageStats(start, end, trackingAction);
+      stats = await reportService.getUsageStats(start, end, trackingAction); // trackingAction = view | download | all
     }
 
     const reportData = {
       reportType,
       generatedAt: new Date().toISOString(),
-      period: {
-        start,
-        end,
-      },
+      period: { start, end },
       summary: stats.summary,
       details: stats.data,
       metrics: {
@@ -191,52 +187,6 @@ export const generateReport = async (data: ReportGenerationParams, jobId?: strin
     return { success: true, reportId, reportData };
   } catch (error) {
     logger.error('Report generation failed:', error);
-    throw error;
-  }
-};
-
-export const checkDuplicates = async (data: DuplicateCheckParams, jobId?: string) => {
-  try {
-    const { assetId, checksum, userId, fileName } = data;
-
-    logger.info(`Checking duplicates for asset ${assetId} (${fileName || 'unknown file'})`);
-
-    if (jobId) {
-      await jobService.addLog(jobId, 'check', `Checking duplicates for ${fileName}`);
-    }
-
-    const duplicates = await assetService.findDuplicates(checksum, assetId, userId);
-
-    const duplicateInfo = {
-      isDuplicate: duplicates.length > 0,
-      count: duplicates.length,
-      duplicates: duplicates.map((row) => ({
-        id: row.id,
-        name: row.name,
-        created_at: row.created_at,
-      })),
-    };
-
-    await assetService.updateDuplicateInfo(assetId, duplicateInfo);
-
-    await assetService.updateDuplicateCheckStatus(assetId, {
-      completed: true,
-      found: duplicates.length,
-      timestamp: new Date().toISOString(),
-    });
-
-    if (jobId) {
-      await jobService.addLog(jobId, 'complete', `Found ${duplicates.length} duplicate(s)`);
-    }
-
-    if (duplicates.length > 0) {
-      logger.info(`Found ${duplicates.length} duplicate(s) for asset ${assetId}`);
-    }
-
-    logger.info(`Duplicate check completed. Found ${duplicates.length} duplicates`);
-    return duplicateInfo;
-  } catch (error) {
-    logger.error('Duplicate check failed:', error);
     throw error;
   }
 };

@@ -720,6 +720,45 @@ router.use(
   })
 );
 
+/**
+ * @swagger
+ * /worker/jobs:
+ *   get:
+ *     summary: Get all jobs
+ *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns list of jobs
+ *       401:
+ *         description: Not authenticated
+ *
+ */
+
+/**
+ * @swagger
+ * /worker/jobs/{id}:
+ *   get:
+ *     summary: Get job by ID
+ *     tags: [Jobs]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Returns job details
+ *       401:
+ *         description: Not authenticated
+ *       404:
+ *         description: Job not found
+ */
+
 // Worker routes
 router.use(
   '/worker',

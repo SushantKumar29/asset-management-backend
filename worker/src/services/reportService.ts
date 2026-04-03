@@ -1,4 +1,5 @@
 import { db } from '../config/database';
+import { REPORT_ACTION_MAP } from '../constants/reports';
 
 export const reportService = {
   async getUsageStats(startDate: Date, endDate: Date, trackingAction?: string) {
@@ -7,7 +8,7 @@ export const reportService = {
 
     if (trackingAction) {
       actionFilter = ` AND action = $3`;
-      params.push(trackingAction);
+      params.push(trackingAction); // trackingAction = view | download
     }
 
     const result = await db.query(
@@ -37,7 +38,7 @@ export const reportService = {
     );
 
     return {
-      trackingAction: trackingAction || 'all',
+      trackingAction: trackingAction || REPORT_ACTION_MAP.all,
       data: result.rows,
       summary: summaryResult.rows[0],
       period: {

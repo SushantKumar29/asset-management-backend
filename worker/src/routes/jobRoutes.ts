@@ -7,6 +7,6 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/jobs', getJobs);
-router.get('/jobs/:jobId', getJobDetails);
+router.get('/jobs/:id', getJobDetails);
 
 export default router;
