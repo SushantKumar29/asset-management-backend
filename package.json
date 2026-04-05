@@ -1,0 +1,58 @@
+{
+  "name": "asset-management-backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/SushantKumar29/asset-management-backend#readme",
+  "bugs": {
+    "url": "https://github.com/SushantKumar29/asset-management-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SushantKumar29/asset-management-backend.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "private": true,
+  "workspaces": [
+    "api-gateway",
+    "auth",
+    "asset",
+    "metadata",
+    "usage",
+    "analytics",
+    "worker"
+  ],
+  "scripts": {
+    "dev": "docker compose up",
+    "dev:build": "docker compose up --build",
+    "dev:down": "docker compose down",
+    "prepare": "husky",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,js,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md,yml,yaml}\"",
+    "test": "npm run test:auth && npm run test:asset && npm run test:metadata && npm run test:usage && npm run test:analytics",
+    "test:auth": "cd auth && npm run test:docker",
+    "test:asset": "cd asset && npm run test:docker",
+    "test:metadata": "cd metadata && npm run test:docker",
+    "test:usage": "cd usage && npm run test:docker",
+    "test:analytics": "cd analytics && npm run test:docker"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^8.0.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "globals": "^17.4.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.2.10",
+    "prettier": "^2.0.0",
+    "typescript": "^4.9.0",
+    "typescript-eslint": "^8.57.0"
+  }
+}
