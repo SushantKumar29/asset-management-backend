@@ -2,14 +2,13 @@ node_modules/
 */node_modules
 dist/
 */dist
-.env
-.env.dev
-!.env.dev
-*.env.dev
 
-.env.test
+# Ignore all .env files
+*.env.*
+
+# But specifically allow .env.example if you have one
+!.env.example
 !.env.test
-*.env.test
 
 .DS_Store
 *.log
