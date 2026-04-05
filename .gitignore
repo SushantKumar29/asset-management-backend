@@ -4,7 +4,8 @@ dist/
 */dist
 
 # Ignore all .env files
-*.env.*
+.env.dev
+*/.env.dev
 
 # But specifically allow .env.example if you have one
 !.env.example
