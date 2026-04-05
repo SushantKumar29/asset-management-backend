@@ -40,7 +40,7 @@ jest.mock('../middleware/auth', () => ({
 dotenv.config({ path: path.join(__dirname, '../../.env.test') });
 
 const config = {
-  host: process.env.TEST_DB_HOST || 'postgres',
+  host: process.env.TEST_DB_HOST || 'localhost',
   port: Number(process.env.TEST_DB_PORT || '5432'),
   database: process.env.TEST_DB_NAME || 'asset_management_test',
   user: process.env.TEST_DB_USER || 'postgres',

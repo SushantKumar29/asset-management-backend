@@ -43,14 +43,5 @@ jobs:
 
           # Stop everything
           docker compose down -v
-        env:
-          TEST_DB_HOST: postgres
-          TEST_DB_PORT: 5432
-          TEST_DB_NAME: asset_management_test
-          TEST_DB_USER: postgres
-          TEST_DB_PASSWORD: postgres
-          JWT_SECRET: test_secret_key_12345
-          JWT_EXPIRY: 24h
-
       - name: Stop and clean up
         run: docker compose down -v
