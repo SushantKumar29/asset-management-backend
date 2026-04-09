@@ -7,6 +7,7 @@ import { handleAssetProcessing } from './helpers/messageHandler';
 import jobRoutes from './routes/jobRoutes';
 import { errorHandler } from './middleware/errorHandler';
 import logger from './utils/logger';
+import { CHANNEL_MESSAGES } from './constants/channels';
 
 /*
   Main function to start the worker service.
@@ -45,7 +46,7 @@ const startWorker = async (retryCount = 0) => {
     await connectRabbitMQ();
     logger.info('✅ Worker connected to RabbitMQ');
 
-    rabbitMqChannel.consume('asset_processing', (msg) => {
+    rabbitMqChannel.consume(CHANNEL_MESSAGES.assetProcessing, (msg) => {
       if (!msg) return;
       handleAssetProcessing(msg, rabbitMqChannel);
     });

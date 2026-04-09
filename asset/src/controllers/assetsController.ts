@@ -6,6 +6,7 @@ import { tagService } from '../services/tagService';
 import { rabbitMqChannel } from '../config/rabbitmq';
 import { parseTags } from '../utils/fileUtils';
 import { AuthRequest } from '../types/auth';
+import { CHANNEL_MESSAGES } from '../constants/channel';
 
 export const uploadAssets = async (req: AuthRequest, res: Response, next: Function) => {
   try {
@@ -112,7 +113,7 @@ export const deleteAsset = async (req: AuthRequest, res: Response, next: Functio
     await assetService.delete(id);
 
     rabbitMqChannel.sendToQueue(
-      'asset_processing',
+      CHANNEL_MESSAGES.assetProcessing,
       Buffer.from(
         JSON.stringify({
           assetId: id,

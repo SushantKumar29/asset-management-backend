@@ -2,6 +2,7 @@ import { Channel, Message } from 'amqplib';
 import { processAsset, generateReport, deleteAssetFiles } from './assetHandler';
 import logger from '../utils/logger';
 import { jobService } from '../services/jobService';
+import { CHANNEL_ACTIONS, CHANNEL_MESSAGES } from '../constants/channels';
 
 const MAX_RETRIES = 5;
 /*
@@ -20,14 +21,18 @@ export const handleAssetProcessing = async (msg: Message, channel: Channel) => {
 
   try {
     switch (data.action) {
-      case 'process':
-        jobId = await jobService.createJob('analysis', data.assetId, { mimeType: data.mimeType });
+      case CHANNEL_ACTIONS.process:
+        jobId = await jobService.createJob(CHANNEL_ACTIONS.analysis, data.assetId, {
+          mimeType: data.mimeType,
+        });
         break;
-      case 'report':
-        jobId = await jobService.createJob('report', undefined, { reportType: data.reportType });
+      case CHANNEL_ACTIONS.report:
+        jobId = await jobService.createJob(CHANNEL_ACTIONS.report, undefined, {
+          reportType: data.reportType,
+        });
         break;
-      case 'delete':
-        jobId = await jobService.createJob('delete', data.assetId);
+      case CHANNEL_ACTIONS.delete:
+        jobId = await jobService.createJob(CHANNEL_ACTIONS.delete, data.assetId);
         break;
     }
 
@@ -37,13 +42,13 @@ export const handleAssetProcessing = async (msg: Message, channel: Channel) => {
     }
 
     switch (data.action) {
-      case 'process':
+      case CHANNEL_ACTIONS.process:
         await processAsset(data, jobId);
         break;
-      case 'report':
+      case CHANNEL_ACTIONS.report:
         await generateReport(data, jobId);
         break;
-      case 'delete':
+      case CHANNEL_ACTIONS.delete:
         await deleteAssetFiles(data, jobId);
         break;
       default:
@@ -71,7 +76,7 @@ export const handleAssetProcessing = async (msg: Message, channel: Channel) => {
       channel.reject(msg, false);
     } else {
       logger.info(`Retrying (${retryCount}/${MAX_RETRIES})...`);
-      channel.publish('', 'asset_processing', msg.content, {
+      channel.publish('', CHANNEL_MESSAGES.assetProcessing, msg.content, {
         headers: { retryCount },
       });
       channel.ack(msg);

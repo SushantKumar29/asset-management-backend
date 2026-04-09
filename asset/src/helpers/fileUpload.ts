@@ -1,5 +1,6 @@
 import { getPublicUrl, minioClient } from '../config/minio';
 import { rabbitMqChannel } from '../config/rabbitmq';
+import { CHANNEL_MESSAGES } from '../constants/channel';
 import { assetService } from '../services/assetService';
 import { tagService } from '../services/tagService';
 import { calculateChecksum, generateFileName, getFileType } from '../utils/fileUtils';
@@ -115,7 +116,7 @@ const queueForProcessing = async (
 
   try {
     rabbitMqChannel.sendToQueue(
-      'asset_processing',
+      CHANNEL_MESSAGES.assetProcessing,
       Buffer.from(
         JSON.stringify({
           assetId,

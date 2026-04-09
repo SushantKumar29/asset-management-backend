@@ -1,6 +1,7 @@
 import amqp from 'amqplib';
 import dotenv from 'dotenv';
 import logger from '../utils/logger';
+import { CHANNEL_MESSAGES } from '../constants/channels';
 
 dotenv.config();
 
@@ -33,7 +34,7 @@ export const connectRabbitMQ = async (retryCount = 0): Promise<void> => {
   try {
     const connection = await amqp.connect(process.env.RABBITMQ_URL!);
     rabbitMqChannel = await connection.createChannel();
-    await rabbitMqChannel.assertQueue('asset_processing');
+    await rabbitMqChannel.assertQueue(CHANNEL_MESSAGES.assetProcessing);
     logger.info('✅ Connected to RabbitMQ');
   } catch (error) {
     logger.error(
